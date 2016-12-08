@@ -97,7 +97,19 @@ open class DataCache {
     }
 
     /**
-     Fetch value from cache. If set the data source will be queried when a value is not found.
+     Synchronously fetch value from cache. Will not query data source if value is not found.
+     */
+    open func value<ValueType: DataConvertable>(for key: String) -> ValueType? {
+        var value: ValueType? = nil
+        accessQueue.sync {
+            value = _value(for: key)
+        }
+
+        return value
+    }
+
+    /**
+     Fetch value from cache. If a data source has been set it will be queried when a value is not found.
      */
     open func value<ValueType: DataConvertable>(for key: String, completion: @escaping ValueCompletion<ValueType>) {
         accessQueue.async {
@@ -107,23 +119,11 @@ open class DataCache {
                 return
             }
 
-            if let value: ValueType = self.memoryCache.value(for: key) {
-                CacheLog.verbose("Value for '\(key)' found in memory cache")
+            if let value: ValueType = self._value(for: key) {
                 self.completionQueue.async {
                     completion(value)
                 }
                 return
-            }
-
-            CacheLog.verbose("Value for '\(key)' not found in memory cache, checking disk cache.")
-
-            if let value: ValueType = self.diskCache.value(for: key) {
-                CacheLog.verbose("Value for '\(key)' found in disk cache.")
-                self.memoryCache.setValue(value, for: key)
-                completion(value)
-                return
-            } else {
-                CacheLog.verbose("Value for '\(key)' not found in disk cache.")
             }
 
             guard let dataSource = self.dataSource else {
@@ -134,7 +134,7 @@ open class DataCache {
                 return
             }
 
-            CacheLog.verbose("Value for '\(key)' not found in disk cache, checking data source.")
+            CacheLog.verbose("Looking for '\(key)' in data source.")
 
             // Add current completion to data source completion queue
             self.addDeferredCompletion(completion, for: key)
@@ -171,81 +171,170 @@ open class DataCache {
     }
 
     /**
-     Set value for key in both memory and disk caches, with optional expiration date.
+     Common synchronous fetch value function. Not thread safe, and will not use data source.
      */
-    open func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil, completion: @escaping Completion = {}) {
-        accessQueue.async(flags: .barrier) {
-            self.memoryCache.setValue(value, for: key, expires: expires)
-            self.diskCache.setValue(value, for: key, expires: expires)
-            self.completionQueue.async {
-                completion()
-            }
-        }
-    }
-
-    /**
-     Remove value for key.
-     */
-    open func removeValue(for key: String, completion: @escaping Completion = {}) {
-        accessQueue.async {
-            self.memoryCache.removeValue(for: key)
-            self.diskCache.removeValue(for: key)
-            self.completionQueue.async {
-                completion()
-            }
-        }
-    }
-
-    /**
-     Remove all values in both memory and disk caches.
-     */
-    open func removeAll(completion: @escaping Completion = {}) {
-        accessQueue.async(flags: .barrier) {
-            self.memoryCache.removeAll()
-            self.diskCache.removeAll()
-            self.completionQueue.async {
-                completion()
-            }
-        }
-    }
-
-    /**
-     Remove expired values in both memory and disk caches.
-     */
-    open func removeExpired(completion: @escaping Completion = {}) {
-        accessQueue.async(flags: .barrier) {
-            self.memoryCache.removeExpired()
-            self.diskCache.removeExpired()
-            self.completionQueue.async {
-                completion()
-            }
-        }
-    }
-
-    open func removeItems(olderThan date: Date, completion: @escaping Completion = {}) {
-        accessQueue.async(flags: .barrier) {
-            self.memoryCache.removeItems(olderThan: date)
-            self.diskCache.removeItems(olderThan: date)
-            self.completionQueue.async {
-                completion()
-            }
-        }
-    }
-
-    /**
-     Synchronous value fetch that updates the memory cache if the value is found
-     in the disk cache. This function is _not_ thread safe.
-     */
-    private func getValueAndUpdateMemoryCache<ValueType: DataConvertable>(for key: String) -> ValueType? {
-        var value: ValueType? = memoryCache.value(for: key)
-        if value != nil {
+    private func _value<ValueType: DataConvertable>(for key: String) -> ValueType? {
+        if let value: ValueType = self.memoryCache.value(for: key) {
+            CacheLog.verbose("Value for '\(key)' found in memory cache")
             return value
         }
-        value = diskCache.value(for: key)
-        if value != nil {
-            memoryCache.setValue(value, for: key)
+
+        CacheLog.verbose("Value for '\(key)' not found in memory cache, checking disk cache.")
+
+        if let value: ValueType = self.diskCache.value(for: key) {
+            CacheLog.verbose("Value for '\(key)' found in disk cache.")
+            self.memoryCache.setValue(value, for: key)
+            return value
         }
-        return value
+
+        CacheLog.verbose("Value for '\(key)' not found in disk cache.")
+
+        return nil
+    }
+
+    /**
+     Synchronously set value for key in both memory and disk caches, with optional expiration date.
+     */
+    open func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil) {
+        accessQueue.sync {
+            _setValue(value, for: key, expires: expires)
+        }
+    }
+
+    /**
+     Asynchronously set value for key in both memory and disk caches, with optional expiration date.
+     */
+    open func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil, completion: @escaping Completion) {
+        accessQueue.async {
+            self._setValue(value, for: key, expires: expires)
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    /**
+     Private common value setter. Not thread-safe.
+     */
+    private func _setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil) {
+        memoryCache.setValue(value, for: key, expires: expires)
+        diskCache.setValue(value, for: key, expires: expires)
+    }
+
+    /**
+     Synchronously remove value for key.
+     */
+    open func removeValue(for key: String) {
+        accessQueue.sync {
+            _removeValue(for: key)
+        }
+    }
+
+    /**
+     Asynchronously remove value for key.
+     */
+    open func removeValue(for key: String, completion: @escaping Completion) {
+        accessQueue.async {
+            self._removeValue(for: key)
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    /**
+     Private common remove value function. Not thread-safe.
+     */
+    private func _removeValue(for key: String) {
+        memoryCache.removeValue(for: key)
+        diskCache.removeValue(for: key)
+    }
+
+    /**
+     Synchronously remove all values in both memory and disk caches.
+     */
+    open func removeAll() {
+        accessQueue.sync {
+            _removeAll()
+        }
+    }
+
+    /**
+     Asynchronously remove all values in both memory and disk caches.
+     */
+    open func removeAll(completion: @escaping Completion) {
+        accessQueue.async {
+            self._removeAll()
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    /**
+     Private common remove all function. Not thread-safe.
+     */
+    private func _removeAll() {
+        memoryCache.removeAll()
+        diskCache.removeAll()
+    }
+
+    /**
+     Synchronously remove expired values in both memory and disk caches.
+     */
+    open func removeExpired() {
+        accessQueue.sync {
+            _removeExpired()
+        }
+    }
+
+    /**
+     Asynchronously remove expired values in both memory and disk caches.
+     */
+    open func removeExpired(completion: @escaping Completion) {
+        accessQueue.async {
+            self._removeExpired()
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    /**
+     Private common function that removes expired cache items. Not thread-safe.
+     */
+    private func _removeExpired() {
+        memoryCache.removeExpired()
+        diskCache.removeExpired()
+    }
+
+    /**
+     Synchronously remove items older than the specified date.
+     */
+    open func removeItems(olderThan date: Date) {
+        accessQueue.sync {
+            _removeItems(olderThan: date)
+        }
+    }
+
+    /**
+     Asynchronously remove items older than the specified date.
+     */
+    open func removeItems(olderThan date: Date, completion: @escaping Completion) {
+        accessQueue.async {
+            self._removeItems(olderThan: date)
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    /**
+     Private common function to remove items older than a specified date. Not thread-safe.
+     */
+    private func _removeItems(olderThan date: Date) {
+        memoryCache.removeItems(olderThan: date)
+        diskCache.removeItems(olderThan: date)
     }
 
     private func addDeferredCompletion<ValueType: DataConvertable>(_ completion: @escaping ValueCompletion<ValueType>, for key: String) {

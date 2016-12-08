@@ -41,7 +41,7 @@ class DataCacheTests: XCTestCase {
         cache.removeAll()
     }
 
-    func testDataValue() {
+    func testAsyncDataValue() {
         let valueExpectation = expectation(description: "Data value in cache")
         let foo = "bar".data(using: .utf8)!
         cache.setValue(foo, for: "foo") {
@@ -55,7 +55,15 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
 
-    func testStringValue() {
+    func testSyncDataValue() {
+        let foo = "bar".data(using: .utf8)!
+        cache.setValue(foo, for: "foo")
+        let value: Data? = cache.value(for: "foo")
+        XCTAssertNotNil(value)
+        XCTAssertEqual(foo, value!)
+    }
+
+    func testAsyncStringValue() {
         let valueExpectation = expectation(description: "String value in cache")
         let foo = "bar"
         cache.setValue(foo, for: "foo") {
@@ -69,7 +77,16 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
 
-    func testRemove() {
+    func testSyncStringValue() {
+        let foo = "bar"
+        cache.setValue(foo, for: "foo") {
+        }
+        let value: String? = cache.value(for: "foo")
+        XCTAssertNotNil(value)
+        XCTAssertEqual(foo, value!)
+    }
+
+    func testAsyncRemove() {
         let expect = expectation(description: "Remove value in cache")
         let foo = "foo"
         cache.setValue(foo, for: foo) {
@@ -86,7 +103,17 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
 
-    func testRemoveAll() {
+    func testSyncRemove() {
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+        var value: String? = cache.value(for: foo)
+        XCTAssertNotNil(value)
+        cache.removeValue(for: foo)
+        value = cache.value(for: foo)
+        XCTAssertNil(value)
+    }
+
+    func testAsyncRemoveAll() {
         let valueExpectation = expectation(description: "Remove all in cache")
         let foo = "foo"
         let bar = "bar"
@@ -106,7 +133,20 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
 
-    func testRemoveExpired() {
+    func testSyncRemoveAll() {
+        let foo = "foo"
+        let bar = "bar"
+
+        cache.setValue(foo, for: foo)
+        cache.setValue(bar, for: bar)
+        self.cache.removeAll()
+        var value: String? = cache.value(for: foo)
+        XCTAssertNil(value)
+        value = cache.value(for: bar)
+        XCTAssertNil(value)
+    }
+
+    func testAsyncRemoveExpired() {
         let valueExpectation = expectation(description: "Remove expired in cache")
         let foo = "foo"
         let bar = "bar"
@@ -126,7 +166,21 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
 
-    func testRemoveItemsOlderThan() {
+    func testSyncRemoveExpired() {
+        let foo = "foo"
+        let bar = "bar"
+        let barExpireDate = Date(timeIntervalSinceNow: -30)
+
+        cache.setValue(foo, for: foo)
+        cache.setValue(bar, for: bar, expires: barExpireDate)
+        cache.removeExpired()
+        var value: String? = cache.value(for: foo)
+        XCTAssertNotNil(value)
+        value = cache.value(for: bar)
+        XCTAssertNil(value)
+    }
+
+    func testAsyncRemoveItemsOlderThan() {
         let expect = expectation(description: "Remove items older than")
         let foo = "foo"
         cache.setValue(foo, for: foo)
@@ -147,6 +201,19 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime)
     }
     
+    func testSyncRemoveItemsOlderThan() {
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+
+        cache.removeItems(olderThan: Date(timeIntervalSinceNow: -30))
+        var value: String? = cache.value(for: foo)
+        XCTAssertNotNil(value)
+
+        cache.removeItems(olderThan: Date())
+        value = cache.value(for: foo)
+        XCTAssertNil(value)
+    }
+
     func testCompletionBackgroundQueue() {
         let expect = expectation(description: "Background queue completion")
         let currentThread = Thread.current
@@ -179,12 +246,18 @@ class DataCacheTests: XCTestCase {
     extension DataCacheTests {
         static var allTests : [(String, (DataCacheTests) -> () throws -> Void)] {
             return [
-                ("testDataValue", testDataValue),
-                ("testStringValue", testStringValue),
-                ("testRemove", testRemove),
-                ("testRemoveAll", testRemoveAll),
-                ("testRemoveExpired", testRemoveExpired),
-                ("testRemoveItemsOlderThan", testRemoveItemsOlderThan),
+                ("testAsyncDataValue", testAsyncDataValue),
+                ("testSyncDataValue", testSyncDataValue),
+                ("testAsyncStringValue", testAsyncStringValue),
+                ("testSyncStringValue", testSyncStringValue),
+                ("testAsyncRemove", testAsyncRemove),
+                ("testSyncRemove", testSyncRemove),
+                ("testAsyncRemoveAll", testAsyncRemoveAll),
+                ("testSyncRemoveAll", testSyncRemoveAll),
+                ("testAsyncRemoveExpired", testAsyncRemoveExpired),
+                ("testSyncRemoveExpired", testSyncRemoveExpired),
+                ("testAsyncRemoveItemsOlderThan", testAsyncRemoveItemsOlderThan),
+                ("testSyncRemoveItemsOlderThan", testSyncRemoveItemsOlderThan),
                 ("testCompletionBackgroundQueue", testCompletionBackgroundQueue),
                 ("testCompletionMainQueue", testCompletionMainQueue),
             ]
