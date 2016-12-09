@@ -90,7 +90,7 @@ let key = "book"
 cache.setValue(weaveworld, for: key)
 
 let data: Data? = cache.value(for: key)
-print("Data length: \(data.length)")
+print("Data size: \(data.count)")
 
 let text: String? = cache.value(for: key)
 print("JSON string: \(text)")
