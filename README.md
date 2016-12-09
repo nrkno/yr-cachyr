@@ -63,5 +63,6 @@ This framework is production ready but there are still many possible improvement
 - Better thread synchronization. The cache uses serial dispatch queues to handle concurrent access and memory/disk value synchronization. This makes the code easy to follow and reason about, but it is not as performant as a solution using the multiple reader single writer pattern. We tried using concurrent dispatch queues with dispatch barriers for cache updates, but it got messy and code readability suffered. In early development serial queues were the way to go, but there is room for improvement.
 - Limit for disk usage. The disk cache has no limit on how much data it stores.
 - Default `DataConvertable` support more common types.
+- Better way of storing expire date for files in the disk cache. The modification date is currently used, but this results in a limit of 2038-01-19 for 32-bit timestamps as used in HFS+.
 
 Pull requests are very welcome.
