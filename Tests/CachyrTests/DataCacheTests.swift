@@ -25,6 +25,29 @@
 import XCTest
 @testable import Cachyr
 
+struct Book {
+    let title: String
+}
+
+extension Book: DataConvertable {
+    static func data(from value: Book) -> Data? {
+        let json: [String: Any] = ["title": value.title]
+        let data = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
+        return data
+    }
+
+    static func value(from data: Data) -> Book? {
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+              let jsonDict = jsonObject as? [String: Any] else {
+            return nil
+        }
+        if let title = jsonDict["title"] as? String {
+            return Book(title: title)
+        }
+        return nil
+    }
+}
+
 class DataCacheTests: XCTestCase {
     var cache: DataCache!
     let expectationWaitTime: TimeInterval = 5
@@ -239,6 +262,22 @@ class DataCacheTests: XCTestCase {
         waitForExpectations(timeout: expectationWaitTime) { error in
             cache.removeAll()
         }
+    }
+
+    func testModelTransform() {
+        let weaveworld = Book(title: "Weaveworld")
+        let key = "book"
+        cache.setValue(weaveworld, for: key)
+
+        let data: Data? = cache.value(for: key)
+        XCTAssertNotNil(data)
+
+        let text: String? = cache.value(for: key)
+        XCTAssertNotNil(text)
+
+        let book: Book? = cache.value(for: key)
+        XCTAssertNotNil(book)
+        XCTAssertEqual(weaveworld.title, book!.title)
     }
 }
 

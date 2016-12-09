@@ -34,12 +34,15 @@ cache.setValue(text, for: key)
 
 // ... do important things ...
 
+let cachedText: String? = cache.value(for: key)
+
+// Or asynchronously
 let cachedText = cache.value(for: key) { (value: String?) in
-    print(value)
+    // Do something with value
 }
 ```
 
-In this example the string `bar` is stored in the cache for the key `foo`. It is later retrieved as a string and printed out. Basic stuff, now let's look at how generics enable easy data transformation.
+In this example the string `bar` is stored in the cache for the key `foo`. It is later retrieved as a string optional by explicitly declaring `String?` as the value type. Let's look at how generics enable easy data transformation.
 
 ```swift
 let textAsData = cache.value(for: key) { (value: Data?) in
@@ -51,4 +54,14 @@ Now the exact same key is used to retrieve the data representation of the value.
 
 There are default `DataConvertable` implementations for `Data`, `String`, `Int` (all integer types), `Float` and `Double`.
 
-For detailed usage examples take a look at `Usage.playground`.
+For detailed usage examples take a look at [Usage.md](./Docs/Usage.md).
+
+## ToDo
+
+This framework is production ready but there are still many possible improvements. Some known tasks are:
+
+- Better thread synchronization. The cache uses serial dispatch queues to handle concurrent access and memory/disk value synchronization. This makes the code easy to follow and reason about, but it is not as performant as a solution using the multiple reader single writer pattern. We tried using concurrent dispatch queues with dispatch barriers for cache updates, but it got messy and code readability suffered. In early development serial queues were the way to go, but there is room for improvement.
+- Limit for disk usage. The disk cache has no limit on how much data it stores.
+- Default `DataConvertable` support more common types.
+
+Pull requests are very welcome.
