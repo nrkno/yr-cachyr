@@ -15,7 +15,13 @@ There already exists plenty of cache solutions, so why create one more? We had a
 
 ### CocoaPods
 
-`$ pod install Cachyr`
+```
+Add to Podfile:
+pod 'Cachyr', :git => 'https://github.com/YR/Cachyr.git'
+
+Then:
+$ pod install
+```
 
 ### Manual
 
