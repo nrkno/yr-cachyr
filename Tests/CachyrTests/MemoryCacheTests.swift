@@ -147,6 +147,18 @@ class MemoryCacheTests: XCTestCase {
         XCTAssertNil(fooValue)
     }
 
+    func testSetGetExpiration() {
+        let expires = Date().addingTimeInterval(10)
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+        let noExpire = cache.expireDate(for: foo)
+        XCTAssertNil(noExpire)
+        cache.setExpireDate(expires, for: foo)
+        let expire = cache.expireDate(for: foo)
+        XCTAssertNotNil(expire)
+        XCTAssertEqual(expires, expire)
+    }
+
     func testRemoveItemsOlderThan() {
         let foo = "foo"
         cache.setValue(foo, for: foo)

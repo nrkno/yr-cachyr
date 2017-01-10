@@ -26,7 +26,7 @@ import Foundation
 
 private final class ValueWrapper {
     let created: Date
-    let expiration: Date?
+    var expiration: Date?
     let value: Any
 
     init(value: Any, expiration: Date? = nil) {
@@ -116,6 +116,24 @@ open class MemoryCache {
                 if wrapper.created <= date {
                     removeValueNoSync(for: key)
                 }
+            }
+        }
+    }
+
+    public func expireDate(for key: String) -> Date? {
+        var date: Date? = nil
+        accessQueue.sync {
+            if let wrapper = wrapper(for: key) {
+                date = wrapper.expiration
+            }
+        }
+        return date
+    }
+
+    public func setExpireDate(_ date: Date?, for key: String) {
+        accessQueue.sync {
+            if let wrapper = wrapper(for: key) {
+                wrapper.expiration = date
             }
         }
     }

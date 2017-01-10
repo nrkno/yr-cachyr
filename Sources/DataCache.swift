@@ -337,6 +337,50 @@ open class DataCache {
         diskCache.removeItems(olderThan: date)
     }
 
+    open func expireDate(for key: String) -> Date? {
+        var date: Date? = nil
+        accessQueue.sync {
+            date = _expireDate(for: key)
+        }
+        return date
+    }
+
+    open func expireDate(for key: String, completion: @escaping (Date?) -> Void) {
+        accessQueue.async {
+            let date = self._expireDate(for: key)
+            self.completionQueue.async {
+                completion(date)
+            }
+        }
+    }
+
+    private func _expireDate(for key: String) -> Date? {
+        if let expires = memoryCache.expireDate(for: key) {
+            return expires
+        }
+        return diskCache.expireDate(for: key)
+    }
+
+    open func setExpireDate(_ date: Date?, for key: String) {
+        accessQueue.sync {
+            _setExpireDate(date, for: key)
+        }
+    }
+
+    open func setExpireDate(_ date: Date?, for key: String, completion: @escaping Completion) {
+        accessQueue.async {
+            self._setExpireDate(date, for: key)
+            self.completionQueue.async {
+                completion()
+            }
+        }
+    }
+
+    private func _setExpireDate(_ date: Date?, for key: String) {
+        memoryCache.setExpireDate(date, for: key)
+        diskCache.setExpireDate(date, for: key)
+    }
+
     private func addDeferredCompletion<ValueType: DataConvertable>(_ completion: @escaping ValueCompletion<ValueType>, for key: String) {
         let wrapper = DeferredCompletion(completion: completion)
         if var completions = waitingCompletions[key] {

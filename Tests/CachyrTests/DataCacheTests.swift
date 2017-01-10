@@ -203,6 +203,42 @@ class DataCacheTests: XCTestCase {
         XCTAssertNil(value)
     }
 
+    func testAsyncSetGetExpiration() {
+        let expect = expectation(description: "Async get/set expiration")
+        let fullExpiration = Date().addingTimeInterval(10)
+        // No second fractions in expire date stored in extended attribute
+        let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
+
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+        cache.expireDate(for: foo) { (noExpire) in
+            XCTAssertNil(noExpire)
+            self.cache.setExpireDate(expires, for: foo, completion: {
+                self.cache.expireDate(for: foo, completion: { (expire) in
+                    XCTAssertNotNil(expire)
+                    XCTAssertEqual(expires, expire)
+                    expect.fulfill()
+                })
+            })
+        }
+
+        waitForExpectations(timeout: expectationWaitTime)
+    }
+
+    func testSyncSetGetExpiration() {
+        let fullExpiration = Date().addingTimeInterval(10)
+        // No second fractions in expire date stored in extended attribute
+        let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+        let noExpire = cache.expireDate(for: foo)
+        XCTAssertNil(noExpire)
+        cache.setExpireDate(expires, for: foo)
+        let expire = cache.expireDate(for: foo)
+        XCTAssertNotNil(expire)
+        XCTAssertEqual(expires, expire)
+    }
+
     func testAsyncRemoveItemsOlderThan() {
         let expect = expectation(description: "Remove items older than")
         let foo = "foo"

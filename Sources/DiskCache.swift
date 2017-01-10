@@ -47,10 +47,20 @@ open class DiskCache {
     private let allowedFilesystemCharacters: CharacterSet
 
     /**
-     The HFS+ file system currently uses 32-bit timestamps, which means max expiry date is 2038-01-19T03:14:07 UTC.
-     The disk cache max expiry is set to 2038-01-01T00:00:00 UTC.
+     Name of extended attribute that stores expire date.
      */
-    private let maxExpireDateForFilesystem = Date(timeIntervalSince1970: 2145916800)
+    private let expireDateAttributeName = "no.nrk.yr.cachyr.expireDate"
+
+    /**
+     Date formatter for expire date stored in extended attribute.
+     */
+    private let expireDateFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.calendar = Calendar(identifier: .gregorian)
+        fmt.timeZone = TimeZone(secondsFromGMT: 0)
+        fmt.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        return fmt
+    }()
 
     private var _url: URL?
     /**
@@ -176,6 +186,26 @@ open class DiskCache {
         }
     }
 
+    public func expireDate(for key: String) -> Date? {
+        guard let url = fileURL(for: key) else {
+            return nil
+        }
+        var date: Date? = nil
+        accessQueue.sync {
+            date = expirationForFile(url)
+        }
+        return date
+    }
+
+    public func setExpireDate(_ date: Date?, for key: String) {
+        guard let url = fileURL(for: key) else {
+            return
+        }
+        accessQueue.sync {
+            setExpiration(date, for: url)
+        }
+    }
+
     func encode(key: String) -> String {
         return key.addingPercentEncoding(withAllowedCharacters: allowedFilesystemCharacters)!
     }
@@ -207,11 +237,14 @@ open class DiskCache {
             CacheLog.error("Unable to create file URL for \(key)")
             return
         }
-        var attribs = [String: Any]()
-        let expireDate = (expires != nil && expires! < maxExpireDateForFilesystem) ? expires! : maxExpireDateForFilesystem
-        attribs[FileAttributeKey.modificationDate.rawValue] = expireDate
-        if !FileManager.default.createFile(atPath: fileURL.path, contents: data, attributes: attribs) {
+
+        if !FileManager.default.createFile(atPath: fileURL.path, contents: data, attributes: nil) {
             CacheLog.error("Unable to create file at \(fileURL.path)")
+            return
+        }
+
+        if let expires = expires {
+            setExpiration(expires, for: fileURL)
         }
     }
 
@@ -229,6 +262,57 @@ open class DiskCache {
         }
         catch let error {
             CacheLog.error(error.localizedDescription)
+        }
+    }
+
+    private func expirationForFile(_ url: URL) -> Date? {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return nil
+        }
+
+        do {
+            let data = try FileManager.default.extendedAttribute(expireDateAttributeName, on: url)
+            guard let dateString = String(data: data, encoding: .utf8) else {
+                CacheLog.error("Unable to convert extended attribute data to expire date.")
+                return nil
+            }
+            guard let date = expireDateFormatter.date(from: dateString) else {
+                CacheLog.error("Unable to create expire date from extended attribute string: \(dateString)")
+                return nil
+            }
+            return date
+        } catch let error as ExtendedAttributeError {
+            // Missing expiration attribute is not an error
+            if error.code != ENOATTR {
+                CacheLog.error("\(error.name) \(error.code) \(error.description)")
+            }
+        } catch {
+            CacheLog.error("Error getting expire date extended attribute on \(url.path)")
+        }
+
+        return nil
+    }
+
+    private func setExpiration(_ expiration: Date?, for file: URL) {
+        guard let expires = expiration else {
+            do {
+                try FileManager.default.removeExtendedAttribute(expireDateAttributeName, from: file)
+            } catch let error as ExtendedAttributeError {
+                CacheLog.error("\(error.name) \(error.code) \(error.description)")
+            } catch {
+                CacheLog.error("Error removing expire date extended attribute on \(file.path)")
+            }
+            return
+        }
+
+        do {
+            let expireString = expireDateFormatter.string(from: expires)
+            let data = expireString.data(using: .utf8)!
+            try FileManager.default.setExtendedAttribute(expireDateAttributeName, on: file, data: data)
+        } catch let error as ExtendedAttributeError {
+            CacheLog.error("\(error.name) \(error.code) \(error.description)")
+        } catch {
+            CacheLog.error("Error setting expire date extended attribute on \(file.path)")
         }
     }
 
@@ -257,23 +341,12 @@ open class DiskCache {
     }
 
     /**
-     Check expiration date of file.
-     Since cache files are never modified (only overwritten), modification time is used as expiration date.
+     Check expiration date of file. Expiration date is stored as extended attribute.
      */
     private func fileExpired(fileURL: URL) -> Bool {
-        let attribs: [FileAttributeKey: Any]
-        do {
-            attribs = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-        }
-        catch {
+        guard let date = expirationForFile(fileURL) else {
             return false
         }
-        guard let expireDate = attribs[.modificationDate] as? Date else {
-            return false
-        }
-        if expireDate < Date() {
-            return true
-        }
-        return false
+        return date < Date()
     }
 }

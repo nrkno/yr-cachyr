@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		52D6D9871BEFF229002C0205 /* Cachyr.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6D97C1BEFF229002C0205 /* Cachyr.framework */; };
+		8E903DE01E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
+		8E903DE11E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
+		8E903DE21E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
+		8E903DE31E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
 		8E9B31511DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
 		8E9B31521DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
 		8E9B31531DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
@@ -78,6 +82,7 @@
 		52D6D9E21BEFFF6E002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52D6D9F01BEFFFBE002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52D6DA0F1BF000BD002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FileManager+xattr.swift"; sourceTree = "<group>"; };
 		8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheDataSource.swift; sourceTree = "<group>"; };
 		8E9B314B1DF957FE0007B377 /* CacheLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheLog.swift; sourceTree = "<group>"; };
 		8E9B314D1DF957FE0007B377 /* DataCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataCache.swift; sourceTree = "<group>"; };
@@ -191,6 +196,7 @@
 				8E9B314D1DF957FE0007B377 /* DataCache.swift */,
 				8E9B314E1DF957FE0007B377 /* DataConvertable.swift */,
 				8E9B314F1DF957FE0007B377 /* DiskCache.swift */,
+				8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */,
 				8E9B31501DF957FE0007B377 /* MemoryCache.swift */,
 			);
 			path = Sources;
@@ -504,6 +510,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E9B31551DF957FE0007B377 /* CacheLog.swift in Sources */,
+				8E903DE01E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */,
 				8E9B31691DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31611DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315D1DF957FE0007B377 /* DataCache.swift in Sources */,
@@ -528,6 +535,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E9B31571DF957FE0007B377 /* CacheLog.swift in Sources */,
+				8E903DE21E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */,
 				8E9B316B1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31631DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315F1DF957FE0007B377 /* DataCache.swift in Sources */,
@@ -541,6 +549,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E9B31581DF957FE0007B377 /* CacheLog.swift in Sources */,
+				8E903DE31E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */,
 				8E9B316C1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31641DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B31601DF957FE0007B377 /* DataCache.swift in Sources */,
@@ -554,6 +563,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E9B31561DF957FE0007B377 /* CacheLog.swift in Sources */,
+				8E903DE11E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */,
 				8E9B316A1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31621DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315E1DF957FE0007B377 /* DataCache.swift in Sources */,
