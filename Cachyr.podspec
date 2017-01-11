@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "Cachyr"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "A thread-safe and type-safe key-value data cache written in Swift."
   s.description  = <<-DESC
     Cachyr is a small key-value cache written in Swift. It has some nice properties:
@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
   s.osx.deployment_target = "10.10"
   s.watchos.deployment_target = "2.0"
   s.tvos.deployment_target = "9.0"
-  s.source       = { :git => ".git", :tag => s.version.to_s }
+  s.source       = { :git => "https://github.com/YR/Cachyr.git", :tag => s.version.to_s }
   s.source_files  = "Sources/**/*"
   s.frameworks  = "Foundation"
 end
