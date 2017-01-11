@@ -211,10 +211,10 @@ class DataCacheTests: XCTestCase {
 
         let foo = "foo"
         cache.setValue(foo, for: foo)
-        cache.expireDate(for: foo) { (noExpire) in
+        cache.expirationDate(for: foo) { (noExpire) in
             XCTAssertNil(noExpire)
-            self.cache.setExpireDate(expires, for: foo, completion: {
-                self.cache.expireDate(for: foo, completion: { (expire) in
+            self.cache.setExpirationDate(expires, for: foo, completion: {
+                self.cache.expirationDate(for: foo, completion: { (expire) in
                     XCTAssertNotNil(expire)
                     XCTAssertEqual(expires, expire)
                     expect.fulfill()
@@ -231,10 +231,10 @@ class DataCacheTests: XCTestCase {
         let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
         let foo = "foo"
         cache.setValue(foo, for: foo)
-        let noExpire = cache.expireDate(for: foo)
+        let noExpire = cache.expirationDate(for: foo)
         XCTAssertNil(noExpire)
         cache.setExpireDate(expires, for: foo)
-        let expire = cache.expireDate(for: foo)
+        let expire = cache.expirationDate(for: foo)
         XCTAssertNotNil(expire)
         XCTAssertEqual(expires, expire)
     }

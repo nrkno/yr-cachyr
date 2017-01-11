@@ -147,12 +147,26 @@ class DiskCacheTests: XCTestCase {
         let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
         let foo = "foo"
         cache.setValue(foo, for: foo)
-        let noExpire = cache.expireDate(for: foo)
+        let noExpire = cache.expirationDate(for: foo)
         XCTAssertNil(noExpire)
-        cache.setExpireDate(expires, for: foo)
-        let expire = cache.expireDate(for: foo)
+        cache.setExpirationDate(expires, for: foo)
+        let expire = cache.expirationDate(for: foo)
         XCTAssertNotNil(expire)
         XCTAssertEqual(expires, expire)
+    }
+
+    func testRemoveExpiration() {
+        let expiration = Date().addingTimeInterval(10)
+        let foo = "foo"
+        cache.setValue(foo, for: foo)
+        let noExpire = cache.expirationDate(for: foo)
+        XCTAssertNil(noExpire)
+        cache.setExpirationDate(expiration, for: foo)
+        let expire = cache.expirationDate(for: foo)
+        XCTAssertNotNil(expire)
+        cache.setExpirationDate(nil, for: foo)
+        let expirationGone = cache.expirationDate(for: foo)
+        XCTAssertNil(expirationGone)
     }
 
     func testRemoveItemsOlderThan() {

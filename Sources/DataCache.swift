@@ -337,48 +337,48 @@ open class DataCache {
         diskCache.removeItems(olderThan: date)
     }
 
-    open func expireDate(for key: String) -> Date? {
+    open func expirationDate(for key: String) -> Date? {
         var date: Date? = nil
         accessQueue.sync {
-            date = _expireDate(for: key)
+            date = _expirationDate(for: key)
         }
         return date
     }
 
-    open func expireDate(for key: String, completion: @escaping (Date?) -> Void) {
+    open func expirationDate(for key: String, completion: @escaping (Date?) -> Void) {
         accessQueue.async {
-            let date = self._expireDate(for: key)
+            let date = self._expirationDate(for: key)
             self.completionQueue.async {
                 completion(date)
             }
         }
     }
 
-    private func _expireDate(for key: String) -> Date? {
-        if let expires = memoryCache.expireDate(for: key) {
+    private func _expirationDate(for key: String) -> Date? {
+        if let expires = memoryCache.expirationDate(for: key) {
             return expires
         }
-        return diskCache.expireDate(for: key)
+        return diskCache.expirationDate(for: key)
     }
 
     open func setExpireDate(_ date: Date?, for key: String) {
         accessQueue.sync {
-            _setExpireDate(date, for: key)
+            _setExpirationDate(date, for: key)
         }
     }
 
-    open func setExpireDate(_ date: Date?, for key: String, completion: @escaping Completion) {
+    open func setExpirationDate(_ date: Date?, for key: String, completion: @escaping Completion) {
         accessQueue.async {
-            self._setExpireDate(date, for: key)
+            self._setExpirationDate(date, for: key)
             self.completionQueue.async {
                 completion()
             }
         }
     }
 
-    private func _setExpireDate(_ date: Date?, for key: String) {
-        memoryCache.setExpireDate(date, for: key)
-        diskCache.setExpireDate(date, for: key)
+    private func _setExpirationDate(_ date: Date?, for key: String) {
+        memoryCache.setExpirationDate(date, for: key)
+        diskCache.setExpirationDate(date, for: key)
     }
 
     private func addDeferredCompletion<ValueType: DataConvertable>(_ completion: @escaping ValueCompletion<ValueType>, for key: String) {

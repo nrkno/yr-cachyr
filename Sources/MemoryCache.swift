@@ -106,6 +106,24 @@ open class MemoryCache {
         }
     }
 
+    public func expirationDate(for key: String) -> Date? {
+        var date: Date? = nil
+        accessQueue.sync {
+            if let wrapper = wrapper(for: key) {
+                date = wrapper.expiration
+            }
+        }
+        return date
+    }
+
+    public func setExpirationDate(_ date: Date?, for key: String) {
+        accessQueue.sync {
+            if let wrapper = wrapper(for: key) {
+                wrapper.expiration = date
+            }
+        }
+    }
+
     public func removeItems(olderThan date: Date) {
         accessQueue.sync {
             for key in keys {
@@ -116,24 +134,6 @@ open class MemoryCache {
                 if wrapper.created <= date {
                     removeValueNoSync(for: key)
                 }
-            }
-        }
-    }
-
-    public func expireDate(for key: String) -> Date? {
-        var date: Date? = nil
-        accessQueue.sync {
-            if let wrapper = wrapper(for: key) {
-                date = wrapper.expiration
-            }
-        }
-        return date
-    }
-
-    public func setExpireDate(_ date: Date?, for key: String) {
-        accessQueue.sync {
-            if let wrapper = wrapper(for: key) {
-                wrapper.expiration = date
             }
         }
     }

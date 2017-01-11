@@ -165,6 +165,26 @@ open class DiskCache {
         }
     }
 
+    public func expirationDate(for key: String) -> Date? {
+        guard let url = fileURL(for: key) else {
+            return nil
+        }
+        var date: Date? = nil
+        accessQueue.sync {
+            date = expirationForFile(url)
+        }
+        return date
+    }
+
+    public func setExpirationDate(_ date: Date?, for key: String) {
+        guard let url = fileURL(for: key) else {
+            return
+        }
+        accessQueue.sync {
+            setExpiration(date, for: url)
+        }
+    }
+
     public func removeItems(olderThan date: Date) {
         accessQueue.sync {
             guard let url = url else { return }
@@ -185,27 +205,7 @@ open class DiskCache {
             }
         }
     }
-
-    public func expireDate(for key: String) -> Date? {
-        guard let url = fileURL(for: key) else {
-            return nil
-        }
-        var date: Date? = nil
-        accessQueue.sync {
-            date = expirationForFile(url)
-        }
-        return date
-    }
-
-    public func setExpireDate(_ date: Date?, for key: String) {
-        guard let url = fileURL(for: key) else {
-            return
-        }
-        accessQueue.sync {
-            setExpiration(date, for: url)
-        }
-    }
-
+    
     func encode(key: String) -> String {
         return key.addingPercentEncoding(withAllowedCharacters: allowedFilesystemCharacters)!
     }
