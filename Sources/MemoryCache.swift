@@ -51,7 +51,7 @@ open class MemoryCache {
 
     public var checkExpiredInterval: TimeInterval = 10 * 60
 
-    public var isCheckExpiredIntervalDone: Bool {
+    public var shouldCheckExpired: Bool {
         return (Date().timeIntervalSince1970 - lastRemoveExpired.timeIntervalSince1970) > checkExpiredInterval
     }
 
@@ -172,7 +172,7 @@ open class MemoryCache {
     }
 
     private func removeExpiredAfterInterval() {
-        if !isCheckExpiredIntervalDone {
+        if !shouldCheckExpired {
             return
         }
         removeExpiredItems()

@@ -233,7 +233,7 @@ class DataCacheTests: XCTestCase {
         cache.setValue(foo, for: foo)
         let noExpire = cache.expirationDate(for: foo)
         XCTAssertNil(noExpire)
-        cache.setExpireDate(expires, for: foo)
+        cache.setExpirationDate(expires, for: foo)
         let expire = cache.expirationDate(for: foo)
         XCTAssertNotNil(expire)
         XCTAssertEqual(expires, expire)

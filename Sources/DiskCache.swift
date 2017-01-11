@@ -82,14 +82,23 @@ open class DiskCache {
         }
     }
 
+    /**
+     The minimum amount of time elapsed before a new check for expired items is run.
+     */
     public var checkExpiredInterval: TimeInterval = 10 * 60
 
-    public var isCheckExpiredIntervalDone: Bool {
+    /**
+     Returns true if enough time has lapsed to start a check for expired items.
+     */
+    public var shouldCheckExpired: Bool {
         return (Date().timeIntervalSince1970 - lastRemoveExpired.timeIntervalSince1970) > checkExpiredInterval
     }
 
+    /**
+     Last time expired items were removed.
+     */
     public private(set) var lastRemoveExpired = Date(timeIntervalSince1970: 0)
-    
+
     public init(name: String = "no.nrk.yr.cache.disk", baseURL: URL? = nil) {
         self.name = name
 
@@ -265,6 +274,9 @@ open class DiskCache {
         }
     }
 
+    /**
+     Check expiration date extended attribute of file.
+     */
     private func expirationForFile(_ url: URL) -> Date? {
         guard FileManager.default.fileExists(atPath: url.path) else {
             return nil
@@ -293,12 +305,15 @@ open class DiskCache {
         return nil
     }
 
+    /**
+     Set expiration date of file as extended attribute. Set it to nil to remove it.
+     */
     private func setExpiration(_ expiration: Date?, for file: URL) {
         guard let expires = expiration else {
             do {
                 try FileManager.default.removeExtendedAttribute(expireDateAttributeName, from: file)
             } catch let error as ExtendedAttributeError {
-                CacheLog.error("\(error.name) \(error.code) \(error.description)")
+                CacheLog.error("\(error.name) \(error.code) \(error.description) \(file.path)")
             } catch {
                 CacheLog.error("Error removing expire date extended attribute on \(file.path)")
             }
@@ -310,7 +325,7 @@ open class DiskCache {
             let data = expireString.data(using: .utf8)!
             try FileManager.default.setExtendedAttribute(expireDateAttributeName, on: file, data: data)
         } catch let error as ExtendedAttributeError {
-            CacheLog.error("\(error.name) \(error.code) \(error.description)")
+            CacheLog.error("\(error.name) \(error.code) \(error.description) \(file.path)")
         } catch {
             CacheLog.error("Error setting expire date extended attribute on \(file.path)")
         }
@@ -331,18 +346,17 @@ open class DiskCache {
         for fileURL in files {
             removeFile(at: fileURL)
         }
+
+        lastRemoveExpired = Date()
     }
 
     private func removeExpiredAfterInterval() {
-        if !isCheckExpiredIntervalDone {
+        if !shouldCheckExpired {
             return
         }
         removeExpiredItems()
     }
 
-    /**
-     Check expiration date of file. Expiration date is stored as extended attribute.
-     */
     private func fileExpired(fileURL: URL) -> Bool {
         guard let date = expirationForFile(fileURL) else {
             return false

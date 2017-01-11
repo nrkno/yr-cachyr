@@ -337,6 +337,9 @@ open class DataCache {
         diskCache.removeItems(olderThan: date)
     }
 
+    /**
+     Synchronously get expiration date for item identified by key.
+     */
     open func expirationDate(for key: String) -> Date? {
         var date: Date? = nil
         accessQueue.sync {
@@ -345,6 +348,9 @@ open class DataCache {
         return date
     }
 
+    /**
+     Asynchronously get expiration date for item identified by key.
+     */
     open func expirationDate(for key: String, completion: @escaping (Date?) -> Void) {
         accessQueue.async {
             let date = self._expirationDate(for: key)
@@ -354,6 +360,9 @@ open class DataCache {
         }
     }
 
+    /**
+     Private common function to get expiration date for item identified by key. Not thread-safe.
+     */
     private func _expirationDate(for key: String) -> Date? {
         if let expires = memoryCache.expirationDate(for: key) {
             return expires
@@ -361,12 +370,20 @@ open class DataCache {
         return diskCache.expirationDate(for: key)
     }
 
-    open func setExpireDate(_ date: Date?, for key: String) {
+    /**
+     Synchronously set expiration date for item identified by key.
+     Set expiration date to nil to remove it.
+     */
+    open func setExpirationDate(_ date: Date?, for key: String) {
         accessQueue.sync {
             _setExpirationDate(date, for: key)
         }
     }
 
+    /**
+     Asynchronously set expiration date for item identified by key.
+     Set expiration date to nil to remove it.
+     */
     open func setExpirationDate(_ date: Date?, for key: String, completion: @escaping Completion) {
         accessQueue.async {
             self._setExpirationDate(date, for: key)
@@ -376,6 +393,9 @@ open class DataCache {
         }
     }
 
+    /**
+     Private common function to set expiration date for item identified by key. Not thread-safe.
+     */
     private func _setExpirationDate(_ date: Date?, for key: String) {
         memoryCache.setExpirationDate(date, for: key)
         diskCache.setExpirationDate(date, for: key)
