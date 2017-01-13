@@ -97,6 +97,42 @@ open class DataCache {
     }
 
     /**
+     Synchronously check if value identified by key exists in cache.
+     */
+    open func contains(key: String) -> Bool {
+        var found = false
+        accessQueue.sync {
+            found = _contains(key: key)
+        }
+
+        return found
+    }
+
+    /**
+     Asynchronously check if value identified by key exists in cache.
+     */
+    open func contains(key: String, completion: @escaping (Bool) -> Void) {
+        accessQueue.async {
+            let found = self._contains(key: key)
+            self.completionQueue.async {
+                completion(found)
+            }
+        }
+    }
+
+    /**
+     Directly check if value identified by key exists in cache. Not thread-safe.
+     */
+    private func _contains(key: String) -> Bool {
+        var found = memoryCache.contains(key: key)
+        if !found {
+            found = diskCache.contains(key: key)
+        }
+
+        return found
+    }
+
+    /**
      Synchronously fetch value from cache. Will not query data source if value is not found.
      */
     open func value<ValueType: DataConvertable>(for key: String) -> ValueType? {

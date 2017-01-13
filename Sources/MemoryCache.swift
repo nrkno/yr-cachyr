@@ -61,6 +61,14 @@ open class MemoryCache {
         self.name = name
     }
 
+    public func contains(key: String) -> Bool {
+        var found = false
+        accessQueue.sync {
+            found = keys.contains(key)
+        }
+        return found
+    }
+
     public func value<ValueType>(for key: String) -> ValueType? {
         var foundValue: ValueType? = nil
         accessQueue.sync {

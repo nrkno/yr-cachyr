@@ -109,6 +109,27 @@ class DataCacheTests: XCTestCase {
         XCTAssertEqual(foo, value!)
     }
 
+    func testAsyncContains() {
+        let expect = expectation(description: "Cache contains key")
+        let key = "foo"
+        cache.contains(key: key) { (found) in
+            XCTAssertFalse(found)
+            self.cache.setValue(key, for: key)
+            self.cache.contains(key: key, completion: { (found) in
+                XCTAssertTrue(found)
+                expect.fulfill()
+            })
+        }
+        waitForExpectations(timeout: expectationWaitTime)
+    }
+
+    func testSyncContains() {
+        let key = "foo"
+        XCTAssertFalse(cache.contains(key: key))
+        cache.setValue(key, for: key)
+        XCTAssertTrue(cache.contains(key: key))
+    }
+
     func testAsyncRemove() {
         let expect = expectation(description: "Remove value in cache")
         let foo = "foo"

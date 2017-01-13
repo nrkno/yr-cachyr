@@ -56,6 +56,13 @@ class DiskCacheTests: XCTestCase {
         XCTAssertEqual(foo, value)
     }
 
+    func testContains() {
+        let key = "foo"
+        XCTAssertFalse(cache.contains(key: key))
+        cache.setValue(key, for: key)
+        XCTAssertTrue(cache.contains(key: key))
+    }
+
     func testRemove() {
         let key = "foo"
         cache.setValue(key, for: key)
