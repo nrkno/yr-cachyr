@@ -17,7 +17,7 @@ There already exists plenty of cache solutions, so why create one more? We had a
 
 ```
 Add to Podfile:
-pod 'Cachyr', :git => 'https://github.com/YR/Cachyr.git'
+pod 'Cachyr'
 
 Then:
 $ pod install

@@ -118,6 +118,17 @@ open class DiskCache {
         }
     }
 
+    public func contains(key: String) -> Bool {
+        var found = false
+        if let url = fileURL(for: key) {
+            accessQueue.sync {
+                found = FileManager.default.fileExists(atPath: url.path)
+            }
+        }
+
+        return found
+    }
+
     public func value<ValueType: DataConvertable>(for key: String) -> ValueType? {
         var value: ValueType? = nil
         accessQueue.sync {

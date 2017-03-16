@@ -109,6 +109,27 @@ class DataCacheTests: XCTestCase {
         XCTAssertEqual(foo, value!)
     }
 
+    func testAsyncContains() {
+        let expect = expectation(description: "Cache contains key")
+        let key = "foo"
+        cache.contains(key: key) { (found) in
+            XCTAssertFalse(found)
+            self.cache.setValue(key, for: key)
+            self.cache.contains(key: key, completion: { (found) in
+                XCTAssertTrue(found)
+                expect.fulfill()
+            })
+        }
+        waitForExpectations(timeout: expectationWaitTime)
+    }
+
+    func testSyncContains() {
+        let key = "foo"
+        XCTAssertFalse(cache.contains(key: key))
+        cache.setValue(key, for: key)
+        XCTAssertTrue(cache.contains(key: key))
+    }
+
     func testAsyncRemove() {
         let expect = expectation(description: "Remove value in cache")
         let foo = "foo"
@@ -314,6 +335,22 @@ class DataCacheTests: XCTestCase {
         let book: Book? = cache.value(for: key)
         XCTAssertNotNil(book)
         XCTAssertEqual(weaveworld.title, book!.title)
+    }
+
+    func testDiskAndMemoryExpiration() {
+        let key = "foo"
+        let value = "bar"
+        let expires = Date.distantFuture
+
+        cache.diskCache.setValue(value, for: key, expires: expires)
+        let diskExpires = cache.diskCache.expirationDate(for: key)!
+        XCTAssertEqual(diskExpires, expires)
+
+        // Populate memory cache by requesting value in data cache
+        let cacheValue: String? = cache.value(for: key)
+        XCTAssertNotNil(cacheValue)
+        let memoryExpires = cache.memoryCache.expirationDate(for: key)
+        XCTAssertEqual(memoryExpires, expires)
     }
 }
 
