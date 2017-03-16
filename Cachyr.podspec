@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   DESC
   s.homepage     = "https://github.com/YR/Cachyr"
   s.license      = { :type => "MIT", :file => "LICENSE" }
-  s.author             = { "Yr" => "yr.mobil.feedback@gmail.com" }
+  s.author             = { "Yr" => "yr-test@nrk.no" }
   s.social_media_url   = ""
   s.ios.deployment_target = "8.0"
   s.osx.deployment_target = "10.10"
