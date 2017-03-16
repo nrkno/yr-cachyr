@@ -336,6 +336,22 @@ class DataCacheTests: XCTestCase {
         XCTAssertNotNil(book)
         XCTAssertEqual(weaveworld.title, book!.title)
     }
+
+    func testDiskAndMemoryExpiration() {
+        let key = "foo"
+        let value = "bar"
+        let expires = Date.distantFuture
+
+        cache.diskCache.setValue(value, for: key, expires: expires)
+        let diskExpires = cache.diskCache.expirationDate(for: key)!
+        XCTAssertEqual(diskExpires, expires)
+
+        // Populate memory cache by requesting value in data cache
+        let cacheValue: String? = cache.value(for: key)
+        XCTAssertNotNil(cacheValue)
+        let memoryExpires = cache.memoryCache.expirationDate(for: key)
+        XCTAssertEqual(memoryExpires, expires)
+    }
 }
 
 #if os(Linux)

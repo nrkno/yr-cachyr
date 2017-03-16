@@ -219,7 +219,7 @@ open class DataCache {
 
         if let value: ValueType = self.diskCache.value(for: key) {
             CacheLog.verbose("Value for '\(key)' found in disk cache.")
-            self.memoryCache.setValue(value, for: key)
+            self.memoryCache.setValue(value, for: key, expires: self.diskCache.expirationDate(for: key))
             return value
         }
 
