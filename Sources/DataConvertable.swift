@@ -49,7 +49,7 @@ extension String: DataConvertable {
     }
 }
 
-extension Integer {
+extension BinaryInteger {
     public static func data(from value: Self) -> Data? {
         var theValue = value
         return Data(buffer: UnsafeBufferPointer(start: &theValue, count: 1))
