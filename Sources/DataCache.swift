@@ -181,7 +181,7 @@ open class DataCache {
                 strongSelf.accessQueue.async {
                     var value: Any? = nil
                     if let data = data {
-                        CacheLog.verbose("Value for '\(key)' found in data source.")
+                        CacheLog.verbose("Value for '\(key)' found in data source, expires '\(strongSelf.stringFromDate(expiration))'")
 
                         strongSelf.diskCache.setValue(data, for: key, expires: expiration)
                         CacheLog.verbose("Value for '\(key)' written to disk cache")
@@ -218,8 +218,9 @@ open class DataCache {
         CacheLog.verbose("Value for '\(key)' not found in memory cache, checking disk cache.")
 
         if let value: ValueType = self.diskCache.value(for: key) {
-            CacheLog.verbose("Value for '\(key)' found in disk cache.")
-            self.memoryCache.setValue(value, for: key, expires: self.diskCache.expirationDate(for: key))
+            let expires = self.diskCache.expirationDate(for: key)
+            CacheLog.verbose("Value for '\(key)' found in disk cache, expires '\(self.stringFromDate(expires))'")
+            self.memoryCache.setValue(value, for: key, expires: expires)
             return value
         }
 
@@ -435,6 +436,16 @@ open class DataCache {
     private func _setExpirationDate(_ date: Date?, for key: String) {
         memoryCache.setExpirationDate(date, for: key)
         diskCache.setExpirationDate(date, for: key)
+    }
+
+    /**
+     Private debug date to string function
+     */
+    private func stringFromDate(_ date: Date?) -> String {
+        if let date = date {
+            return "\(date)"
+        }
+        return ""
     }
 
     private func addDeferredCompletion<ValueType: DataConvertable>(_ completion: @escaping ValueCompletion<ValueType>, for key: String) {
