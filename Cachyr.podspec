@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
   s.name         = "Cachyr"
-  s.version      = "1.0.2"
+  s.version      = "1.0.3"
   s.summary      = "A thread-safe and type-safe key-value data cache written in Swift."
   s.description  = <<-DESC
     Cachyr is a small key-value cache written in Swift. It has some nice properties:
 
-    - Written in Swift 3.
+    - Written in Swift 4.
     - Thread-safe.
     - Type-safe while still allowing any kind of data to be stored.
     - Disk and memory cache.
