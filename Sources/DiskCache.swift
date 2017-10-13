@@ -52,17 +52,10 @@ open class DiskCache {
     private let expireDateAttributeName = "no.nrk.yr.cachyr.expireDate"
 
     /**
-     Date formatter for expire date stored in extended attribute.
+     Storage for the url property.
      */
-    private let expireDateFormatter: DateFormatter = {
-        let fmt = DateFormatter()
-        fmt.calendar = Calendar(identifier: .gregorian)
-        fmt.timeZone = TimeZone(secondsFromGMT: 0)
-        fmt.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        return fmt
-    }()
-
     private var _url: URL?
+
     /**
      URL of cache directory, of the form: `baseURL/name`
      */
@@ -295,14 +288,11 @@ open class DiskCache {
 
         do {
             let data = try FileManager.default.extendedAttribute(expireDateAttributeName, on: url)
-            guard let dateString = String(data: data, encoding: .utf8) else {
+            guard let epoch = Double.value(from: data) else {
                 CacheLog.error("Unable to convert extended attribute data to expire date.")
                 return nil
             }
-            guard let date = expireDateFormatter.date(from: dateString) else {
-                CacheLog.error("Unable to create expire date from extended attribute string: \(dateString)")
-                return nil
-            }
+            let date = Date(timeIntervalSince1970: epoch)
             return date
         } catch let error as ExtendedAttributeError {
             // Missing expiration attribute is not an error
@@ -332,8 +322,11 @@ open class DiskCache {
         }
 
         do {
-            let expireString = expireDateFormatter.string(from: expires)
-            let data = expireString.data(using: .utf8)!
+            let epoch = expires.timeIntervalSince1970
+            guard let data = Double.data(from: epoch) else {
+                CacheLog.error("Unable to convert expiry date \(expires) to data")
+                return
+            }
             try FileManager.default.setExtendedAttribute(expireDateAttributeName, on: file, data: data)
         } catch let error as ExtendedAttributeError {
             CacheLog.error("\(error.name) \(error.code) \(error.description) \(file.path)")
