@@ -28,7 +28,7 @@ import XCTest
 class StringDataSource: CacheDataSource {
     var wait = 0.0
 
-    func data(for key: String, completion: @escaping (Data?, Date?) -> Void) {
+    func data(for key: String, clientData: DataSourceClientData? = nil, completion: @escaping (Data?, Date?) -> Void) {
         DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + wait) {
             let data = key.data(using: .utf8)
             completion(data, nil)

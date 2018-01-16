@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		52D6D9871BEFF229002C0205 /* Cachyr.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6D97C1BEFF229002C0205 /* Cachyr.framework */; };
+		8E18CA28200E22DA0093C63D /* DataCacheAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */; };
+		8E18CA29200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */; };
+		8E18CA2A200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */; };
 		8E903DE01E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
 		8E903DE11E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
 		8E903DE21E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
@@ -82,6 +85,7 @@
 		52D6D9E21BEFFF6E002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52D6D9F01BEFFFBE002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52D6DA0F1BF000BD002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DataCacheAccessTests.swift; path = Tests/CachyrTests/DataCacheAccessTests.swift; sourceTree = "<group>"; };
 		8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FileManager+xattr.swift"; sourceTree = "<group>"; };
 		8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheDataSource.swift; sourceTree = "<group>"; };
 		8E9B314B1DF957FE0007B377 /* CacheLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheLog.swift; sourceTree = "<group>"; };
@@ -206,6 +210,7 @@
 			isa = PBXGroup;
 			children = (
 				8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */,
+				8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */,
 				8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */,
 				8E9B31701DF9582B0007B377 /* DiskCacheTests.swift */,
 				8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */,
@@ -526,6 +531,7 @@
 				8E9B31751DF9582B0007B377 /* DataCacheTests.swift in Sources */,
 				8E9B31781DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317B1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
+				8E18CA28200E22DA0093C63D /* DataCacheAccessTests.swift in Sources */,
 				8E9B31721DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -579,6 +585,7 @@
 				8E9B31761DF9582B0007B377 /* DataCacheTests.swift in Sources */,
 				8E9B31791DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317C1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
+				8E18CA29200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */,
 				8E9B31731DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -590,6 +597,7 @@
 				8E9B31771DF9582B0007B377 /* DataCacheTests.swift in Sources */,
 				8E9B317A1DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317D1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
+				8E18CA2A200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */,
 				8E9B31741DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
