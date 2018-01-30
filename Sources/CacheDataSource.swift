@@ -24,8 +24,7 @@
 
 import Foundation
 
-public typealias DataSourceClientData = (Any) -> Void
-
 public protocol CacheDataSource {
-    func data(for key: String, clientData: DataSourceClientData?, completion: @escaping (_ data: Data?, _ expiration: Date?) -> Void)
+    @discardableResult
+    func data(for key: String, completion: @escaping (_ data: Data?, _ expiration: Date?) -> Void) -> Any?
 }

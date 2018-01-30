@@ -169,8 +169,12 @@ open class DataCache {
     /**
      Fetch value from cache. If a data source has been set it will be queried when a value is not found.
      */
-    open func value<ValueType: DataConvertable>(for key: String, access: AccessOptions = .default, dataSourceClientData: DataSourceClientData? = nil, completion: @escaping ValueCompletion<ValueType>) {
-        accessQueue.async {
+    @discardableResult
+    open func value<ValueType: DataConvertable>(for key: String, access: AccessOptions = .default, completion: @escaping ValueCompletion<ValueType>) -> Any? {
+
+        var dataSourceClientData: Any? = nil
+
+        accessQueue.sync {
             // Check if key is waiting for data source to populate cache
             if self.isKeyWaiting(key) {
                 self.addDeferredCompletion(completion, for: key)
@@ -197,7 +201,7 @@ open class DataCache {
             // Add current completion to data source completion queue
             self.addDeferredCompletion(completion, for: key)
 
-            dataSource.data(for: key, clientData: dataSourceClientData) { [weak self] (data, expiration) in
+            dataSourceClientData = dataSource.data(for: key) { [weak self] (data, expiration) in
                 guard let strongSelf = self else { return }
 
                 strongSelf.accessQueue.async {
@@ -226,6 +230,8 @@ open class DataCache {
                 }
             }
         }
+
+        return dataSourceClientData
     }
 
     /**
