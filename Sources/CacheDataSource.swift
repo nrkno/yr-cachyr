@@ -25,5 +25,6 @@
 import Foundation
 
 public protocol CacheDataSource {
-    func data(for key: String, completion: @escaping (_ data: Data?, _ expiration: Date?) -> Void)
+    @discardableResult
+    func data(for key: String, completion: @escaping (_ data: Data?, _ expiration: Date?) -> Void) -> Any?
 }

@@ -28,11 +28,13 @@ import XCTest
 class StringDataSource: CacheDataSource {
     var wait = 0.0
 
-    func data(for key: String, completion: @escaping (Data?, Date?) -> Void) {
+    @discardableResult
+    func data(for key: String, completion: @escaping (Data?, Date?) -> Void) -> Any? {
         DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + wait) {
             let data = key.data(using: .utf8)
             completion(data, nil)
         }
+        return key
     }
 }
 
@@ -89,6 +91,29 @@ class CacheDataSourceTests: XCTestCase {
                     }
                 }
             }
+        }
+        waitForExpectations(timeout: expectationWaitTime)
+    }
+
+    func testDataSourceClientData() {
+        cache.dataSource = StringDataSource()
+        let expect = expectation(description: "String data source")
+        let key = "foo"
+        let clientData = cache.value(for: key) { (value: String?) in
+            XCTAssertNotNil(value)
+            XCTAssertEqual(value!, key)
+
+            self.cache.dataSource = nil
+            self.cache.value(for: key) { (value: String?) in
+                XCTAssertNotNil(value)
+                XCTAssertEqual(value!, key)
+                expect.fulfill()
+            }
+        }
+        if let info = clientData as? String {
+            XCTAssertEqual(info, key)
+        } else {
+            XCTFail()
         }
         waitForExpectations(timeout: expectationWaitTime)
     }
