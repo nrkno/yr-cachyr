@@ -24,19 +24,19 @@
 
 import Foundation
 
-private final class ValueWrapper {
+private final class ValueWrapper<ValueType> {
     let created: Date
     var expiration: Date?
-    let value: Any
+    let value: ValueType
 
-    init(value: Any, expiration: Date? = nil) {
+    init(value: ValueType, expiration: Date? = nil) {
         self.created = Date()
         self.expiration = expiration
         self.value = value
     }
 }
 
-open class MemoryCache {
+open class MemoryCache<ValueType> {
     public let name: String
 
     /**
@@ -45,7 +45,7 @@ open class MemoryCache {
      */
     private let accessQueue = DispatchQueue(label: "no.nrk.yr.cache.memory")
 
-    private let cache = NSCache<NSString, ValueWrapper>()
+    private let cache = NSCache<NSString, ValueWrapper<ValueType>>()
 
     public private(set) var keys = Set<String>()
 
@@ -62,40 +62,36 @@ open class MemoryCache {
     }
 
     public func contains(key: String) -> Bool {
-        var found = false
-        accessQueue.sync {
-            found = keys.contains(key)
+        return accessQueue.sync {
+            return keys.contains(key)
         }
-        return found
     }
 
-    public func value<ValueType>(for key: String) -> ValueType? {
-        var foundValue: ValueType? = nil
-        accessQueue.sync {
+    public func value(forKey key: String) -> ValueType? {
+        return accessQueue.sync {
             removeExpiredAfterInterval()
 
             guard let wrapper = wrapper(for: key) else {
-                return
+                return nil
             }
 
             if hasExpired(wrapper: wrapper) {
                 removeValueNoSync(for: key)
-                return
+                return nil
             }
 
-            foundValue = wrapper.value as? ValueType
+            return wrapper.value
         }
-        return foundValue
     }
 
-    public func setValue<ValueType>(_ value: ValueType, for key: String, expires: Date? = nil) {
+    public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil) {
         accessQueue.sync {
             removeExpiredAfterInterval()
             addValue(value, for: key, expires: expires)
         }
     }
 
-    public func removeValue(for key: String) {
+    public func removeValue(forKey key: String) {
         accessQueue.sync {
             removeValueNoSync(for: key)
         }
@@ -114,17 +110,16 @@ open class MemoryCache {
         }
     }
 
-    public func expirationDate(for key: String) -> Date? {
-        var date: Date? = nil
-        accessQueue.sync {
+    public func expirationDate(forKey key: String) -> Date? {
+        return accessQueue.sync {
             if let wrapper = wrapper(for: key) {
-                date = wrapper.expiration
+                return wrapper.expiration
             }
+            return nil
         }
-        return date
     }
 
-    public func setExpirationDate(_ date: Date?, for key: String) {
+    public func setExpirationDate(_ date: Date?, forKey key: String) {
         accessQueue.sync {
             if let wrapper = wrapper(for: key) {
                 wrapper.expiration = date
@@ -146,11 +141,11 @@ open class MemoryCache {
         }
     }
 
-    private func wrapper(for key: String) -> ValueWrapper? {
+    private func wrapper(for key: String) -> ValueWrapper<ValueType>? {
         return cache.object(forKey: key as NSString)
     }
 
-    private func addValue<ValueType>(_ value: ValueType, for key: String, expires: Date? = nil) {
+    private func addValue(_ value: ValueType, for key: String, expires: Date? = nil) {
         let wrapper = ValueWrapper(value: value, expiration: expires)
         cache.setObject(wrapper, forKey: key as NSString)
         keys.insert(key)
@@ -161,8 +156,10 @@ open class MemoryCache {
         cache.removeObject(forKey: key as NSString)
     }
 
-    private func hasExpired(wrapper: ValueWrapper) -> Bool {
-        guard let expireDate = wrapper.expiration else { return false }
+    private func hasExpired(wrapper: ValueWrapper<ValueType>) -> Bool {
+        guard let expireDate = wrapper.expiration else {
+            return false
+        }
         return expireDate < Date()
     }
 

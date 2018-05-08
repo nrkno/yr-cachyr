@@ -24,7 +24,7 @@
 
 import Foundation
 
-open class DiskCache {
+open class DiskCache<ValueType: DataConvertable> {
     /**
      Name of cache.
      Names should be unique enough to separate different caches.
@@ -112,35 +112,32 @@ open class DiskCache {
     }
 
     public func contains(key: String) -> Bool {
-        var found = false
         if let url = fileURL(for: key) {
-            accessQueue.sync {
-                found = FileManager.default.fileExists(atPath: url.path)
+            return accessQueue.sync {
+                return FileManager.default.fileExists(atPath: url.path)
             }
         }
-
-        return found
+        return false
     }
 
-    public func value<ValueType: DataConvertable>(for key: String) -> ValueType? {
-        var value: ValueType? = nil
-        accessQueue.sync {
+    public func value(forKey key: String) -> ValueType? {
+        return accessQueue.sync {
             removeExpiredAfterInterval()
 
             guard let data = fileFor(key: key) else {
-                return
+                return nil
             }
 
-            value = ValueType.value(from: data)
-            if value == nil {
+            if let value = ValueType.value(from: data) {
+                return value
+            } else {
                 CacheLog.warning("Could not convert data to \(ValueType.self)")
+                return nil
             }
         }
-
-        return value
     }
 
-    public func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil) {
+    public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil) {
         accessQueue.sync {
             removeExpiredAfterInterval()
 
@@ -152,7 +149,7 @@ open class DiskCache {
         }
     }
 
-    public func removeValue(for key: String) {
+    public func removeValue(forKey key: String) {
         accessQueue.sync {
             removeFile(for: key)
         }
@@ -178,18 +175,16 @@ open class DiskCache {
         }
     }
 
-    public func expirationDate(for key: String) -> Date? {
+    public func expirationDate(forKey key: String) -> Date? {
         guard let url = fileURL(for: key) else {
             return nil
         }
-        var date: Date? = nil
-        accessQueue.sync {
-            date = expirationForFile(url)
+        return accessQueue.sync {
+            return expirationForFile(url)
         }
-        return date
     }
 
-    public func setExpirationDate(_ date: Date?, for key: String) {
+    public func setExpirationDate(_ date: Date?, forKey key: String) {
         guard let url = fileURL(for: key) else {
             return
         }

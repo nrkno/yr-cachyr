@@ -26,13 +26,13 @@ import XCTest
 @testable import Cachyr
 
 class DataCacheAccessTests: XCTestCase {
-    var cache: DataCache!
+    var cache: DataCache<String>!
     let expectationWaitTime: TimeInterval = 5
 
     override func setUp() {
         super.setUp()
 
-        cache = DataCache()
+        cache = DataCache<String>()
     }
 
     override func tearDown() {
@@ -47,19 +47,19 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
+        cache.setValue(foo, forKey: key)
         XCTAssertTrue(cache.contains(key: key, access: [.memory]))
         XCTAssertTrue(cache.contains(key: key, access: [.disk]))
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key, access: [.memory])
+        cache.setValue(foo, forKey: key, access: [.memory])
         XCTAssertTrue(cache.contains(key: key, access: [.memory]))
         XCTAssertFalse(cache.contains(key: key, access: [.disk]))
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key, access: [.disk])
+        cache.setValue(foo, forKey: key, access: [.disk])
         XCTAssertFalse(cache.contains(key: key, access: [.memory]))
         XCTAssertTrue(cache.contains(key: key, access: [.disk]))
 
@@ -72,24 +72,24 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
-        let value: String? = cache.value(for: key)
+        cache.setValue(foo, forKey: key)
+        let value = cache.value(forKey: key)
         XCTAssertNotNil(value)
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key, access: [.memory])
-        var memoryValue: String? = cache.value(for: key, access: [.memory])
+        cache.setValue(foo, forKey: key, access: [.memory])
+        var memoryValue = cache.value(forKey: key, access: [.memory])
         XCTAssertNotNil(memoryValue)
-        var diskValue: String? = cache.value(for: key, access: [.disk])
+        var diskValue = cache.value(forKey: key, access: [.disk])
         XCTAssertNil(diskValue)
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key, access: [.disk])
-        memoryValue = cache.value(for: key, access: [.memory])
+        cache.setValue(foo, forKey: key, access: [.disk])
+        memoryValue = cache.value(forKey: key, access: [.memory])
         XCTAssertNil(memoryValue)
-        diskValue = cache.value(for: key, access: [.disk])
+        diskValue = cache.value(forKey: key, access: [.disk])
         XCTAssertNotNil(diskValue)
 
         cache.removeAll()
@@ -101,15 +101,15 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
-        cache.removeValue(for: key, access: [.memory])
+        cache.setValue(foo, forKey: key)
+        cache.removeValue(forKey: key, access: [.memory])
         XCTAssertFalse(cache.contains(key: key, access: [.memory]))
         XCTAssertTrue(cache.contains(key: key, access: [.disk]))
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
-        cache.removeValue(for: key, access: [.disk])
+        cache.setValue(foo, forKey: key)
+        cache.removeValue(forKey: key, access: [.disk])
         XCTAssertTrue(cache.contains(key: key, access: [.memory]))
         XCTAssertFalse(cache.contains(key: key, access: [.disk]))
 
@@ -124,8 +124,8 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: fooKey)
-        cache.setValue(bar, for: barKey)
+        cache.setValue(foo, forKey: fooKey)
+        cache.setValue(bar, forKey: barKey)
         XCTAssertTrue(cache.contains(key: fooKey, access: [.memory]))
         XCTAssertTrue(cache.contains(key: barKey, access: [.memory]))
         XCTAssertTrue(cache.contains(key: fooKey, access: [.disk]))
@@ -152,8 +152,8 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
-        cache.setExpirationDate(Date.distantPast, for: key)
+        cache.setValue(foo, forKey: key)
+        cache.setExpirationDate(Date.distantPast, forKey: key)
 
         cache.removeExpired(access: [.memory])
         XCTAssertFalse(cache.contains(key: key, access: [.memory]))
@@ -174,7 +174,7 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key, expires: expires)
+        cache.setValue(foo, forKey: key, expires: expires)
 
         cache.removeItems(olderThan: maxExpire, access: [.memory])
         XCTAssertFalse(cache.contains(key: key, access: [.memory]))
@@ -194,18 +194,18 @@ class DataCacheAccessTests: XCTestCase {
 
         cache.removeAll()
 
-        cache.setValue(foo, for: key)
-        XCTAssertNil(cache.expirationDate(for: key, access: [.memory]))
-        XCTAssertNil(cache.expirationDate(for: key, access: [.disk]))
+        cache.setValue(foo, forKey: key)
+        XCTAssertNil(cache.expirationDate(forKey: key, access: [.memory]))
+        XCTAssertNil(cache.expirationDate(forKey: key, access: [.disk]))
 
-        cache.setExpirationDate(expires, for: key, access: [.memory])
-        XCTAssertNotNil(cache.expirationDate(for: key, access: [.memory]))
-        XCTAssertNil(cache.expirationDate(for: key, access: [.disk]))
+        cache.setExpirationDate(expires, forKey: key, access: [.memory])
+        XCTAssertNotNil(cache.expirationDate(forKey: key, access: [.memory]))
+        XCTAssertNil(cache.expirationDate(forKey: key, access: [.disk]))
 
-        cache.setExpirationDate(nil, for: key, access: [.memory])
-        cache.setExpirationDate(expires, for: key, access: [.disk])
-        XCTAssertNil(cache.expirationDate(for: key, access: [.memory]))
-        XCTAssertNotNil(cache.expirationDate(for: key, access: [.disk]))
+        cache.setExpirationDate(nil, forKey: key, access: [.memory])
+        cache.setExpirationDate(expires, forKey: key, access: [.disk])
+        XCTAssertNil(cache.expirationDate(forKey: key, access: [.memory]))
+        XCTAssertNotNil(cache.expirationDate(forKey: key, access: [.disk]))
 
         cache.removeAll()
     }

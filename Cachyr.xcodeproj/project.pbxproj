@@ -15,10 +15,6 @@
 		8E903DE11E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
 		8E903DE21E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
 		8E903DE31E24DE4F000FFA4F /* FileManager+xattr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */; };
-		8E9B31511DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
-		8E9B31521DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
-		8E9B31531DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
-		8E9B31541DF957FE0007B377 /* CacheDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */; };
 		8E9B31551DF957FE0007B377 /* CacheLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314B1DF957FE0007B377 /* CacheLog.swift */; };
 		8E9B31561DF957FE0007B377 /* CacheLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314B1DF957FE0007B377 /* CacheLog.swift */; };
 		8E9B31571DF957FE0007B377 /* CacheLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B314B1DF957FE0007B377 /* CacheLog.swift */; };
@@ -39,9 +35,6 @@
 		8E9B316A1DF957FE0007B377 /* MemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31501DF957FE0007B377 /* MemoryCache.swift */; };
 		8E9B316B1DF957FE0007B377 /* MemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31501DF957FE0007B377 /* MemoryCache.swift */; };
 		8E9B316C1DF957FE0007B377 /* MemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31501DF957FE0007B377 /* MemoryCache.swift */; };
-		8E9B31721DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */; };
-		8E9B31731DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */; };
-		8E9B31741DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */; };
 		8E9B31751DF9582B0007B377 /* DataCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */; };
 		8E9B31761DF9582B0007B377 /* DataCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */; };
 		8E9B31771DF9582B0007B377 /* DataCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */; };
@@ -87,13 +80,11 @@
 		52D6DA0F1BF000BD002C0205 /* Cachyr.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Cachyr.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DataCacheAccessTests.swift; path = Tests/CachyrTests/DataCacheAccessTests.swift; sourceTree = "<group>"; };
 		8E903DDF1E24DE4F000FFA4F /* FileManager+xattr.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FileManager+xattr.swift"; sourceTree = "<group>"; };
-		8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheDataSource.swift; sourceTree = "<group>"; };
 		8E9B314B1DF957FE0007B377 /* CacheLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CacheLog.swift; sourceTree = "<group>"; };
 		8E9B314D1DF957FE0007B377 /* DataCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataCache.swift; sourceTree = "<group>"; };
 		8E9B314E1DF957FE0007B377 /* DataConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataConvertable.swift; sourceTree = "<group>"; };
 		8E9B314F1DF957FE0007B377 /* DiskCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiskCache.swift; sourceTree = "<group>"; };
 		8E9B31501DF957FE0007B377 /* MemoryCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MemoryCache.swift; sourceTree = "<group>"; };
-		8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CacheDataSourceTests.swift; path = Tests/CachyrTests/CacheDataSourceTests.swift; sourceTree = "<group>"; };
 		8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DataCacheTests.swift; path = Tests/CachyrTests/DataCacheTests.swift; sourceTree = "<group>"; };
 		8E9B31701DF9582B0007B377 /* DiskCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DiskCacheTests.swift; path = Tests/CachyrTests/DiskCacheTests.swift; sourceTree = "<group>"; };
 		8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemoryCacheTests.swift; path = Tests/CachyrTests/MemoryCacheTests.swift; sourceTree = "<group>"; };
@@ -195,7 +186,6 @@
 		8E9B31491DF957FE0007B377 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				8E9B314A1DF957FE0007B377 /* CacheDataSource.swift */,
 				8E9B314B1DF957FE0007B377 /* CacheLog.swift */,
 				8E9B314D1DF957FE0007B377 /* DataCache.swift */,
 				8E9B314E1DF957FE0007B377 /* DataConvertable.swift */,
@@ -209,7 +199,6 @@
 		8E9B316D1DF958090007B377 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				8E9B316E1DF9582B0007B377 /* CacheDataSourceTests.swift */,
 				8E18CA27200E22DA0093C63D /* DataCacheAccessTests.swift */,
 				8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */,
 				8E9B31701DF9582B0007B377 /* DiskCacheTests.swift */,
@@ -401,7 +390,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0720;
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = NRK;
 				TargetAttributes = {
 					52D6D97B1BEFF229002C0205 = {
@@ -520,7 +509,6 @@
 				8E9B31611DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315D1DF957FE0007B377 /* DataCache.swift in Sources */,
 				8E9B31651DF957FE0007B377 /* DiskCache.swift in Sources */,
-				8E9B31511DF957FE0007B377 /* CacheDataSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -532,7 +520,6 @@
 				8E9B31781DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317B1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
 				8E18CA28200E22DA0093C63D /* DataCacheAccessTests.swift in Sources */,
-				8E9B31721DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,7 +533,6 @@
 				8E9B31631DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315F1DF957FE0007B377 /* DataCache.swift in Sources */,
 				8E9B31671DF957FE0007B377 /* DiskCache.swift in Sources */,
-				8E9B31531DF957FE0007B377 /* CacheDataSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -560,7 +546,6 @@
 				8E9B31641DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B31601DF957FE0007B377 /* DataCache.swift in Sources */,
 				8E9B31681DF957FE0007B377 /* DiskCache.swift in Sources */,
-				8E9B31541DF957FE0007B377 /* CacheDataSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,7 +559,6 @@
 				8E9B31621DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315E1DF957FE0007B377 /* DataCache.swift in Sources */,
 				8E9B31661DF957FE0007B377 /* DiskCache.swift in Sources */,
-				8E9B31521DF957FE0007B377 /* CacheDataSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -586,7 +570,6 @@
 				8E9B31791DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317C1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
 				8E18CA29200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */,
-				8E9B31731DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -598,7 +581,6 @@
 				8E9B317A1DF9582B0007B377 /* DiskCacheTests.swift in Sources */,
 				8E9B317D1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */,
 				8E18CA2A200E22DB0093C63D /* DataCacheAccessTests.swift in Sources */,
-				8E9B31741DF9582B0007B377 /* CacheDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -635,12 +617,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -692,12 +676,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;

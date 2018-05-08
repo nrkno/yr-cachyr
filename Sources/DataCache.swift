@@ -24,23 +24,26 @@
 
 import Foundation
 
-fileprivate protocol DeferredCompletionWrapper {
-    func complete(with value: Any?)
-}
+/**
+ Options indicating which data layers to access when getting/setting a value.
+ */
+public struct DataCacheAccessOptions: OptionSet {
+    public let rawValue: Int
 
-fileprivate class DeferredCompletion<ValueType: DataConvertable>: DeferredCompletionWrapper {
-    let completion: DataCache.ValueCompletion<ValueType>
-
-    init(completion: @escaping DataCache.ValueCompletion<ValueType>) {
-        self.completion = completion
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
     }
 
-    func complete(with value: Any?) {
-        completion(value as? ValueType)
-    }
+    public static let disk   = DataCacheAccessOptions(rawValue: 1 << 0)
+    public static let memory = DataCacheAccessOptions(rawValue: 1 << 1)
+
+    public static let `default`: DataCacheAccessOptions = [.disk, .memory]
 }
 
-open class DataCache {
+/**
+ Generic data cache backed by a memory cache and a disk cache.
+ */
+open class DataCache<ValueType: DataConvertable> {
     /**
      Closure used for completions that have no result.
      */
@@ -49,24 +52,7 @@ open class DataCache {
     /**
      Closure used for completions that have a key/value result.
      */
-    public typealias ValueCompletion<Value: DataConvertable> = (_ value: Value?) -> Void
-
-    /**
-     Options indicating which data layers to access when getting/setting a value.
-     */
-    public struct AccessOptions: OptionSet {
-        public let rawValue: Int
-
-        public init(rawValue: Int) {
-            self.rawValue = rawValue
-        }
-
-        public static let disk       = AccessOptions(rawValue: 1 << 0)
-        public static let memory     = AccessOptions(rawValue: 1 << 1)
-        public static let dataSource = AccessOptions(rawValue: 1 << 2)
-
-        public static let `default`: AccessOptions = [.disk, .memory, .dataSource]
-    }
+    public typealias ValueCompletion = (_ value: ValueType?) -> Void
 
     /**
      Name of cache. The disk cache will use this name for the name of the on-disk directory.
@@ -78,18 +64,13 @@ open class DataCache {
      Direct access to the memory cache. If used, remember that any changes will not be done on the
      data cache access queue and might cause synchronization problems.
      */
-    public let memoryCache: MemoryCache
+    public let memoryCache: MemoryCache<ValueType>
 
     /**
      Direct access to the disk cache. If used, remember that any changes will not be done on the
      data cache access queue and might cause synchronization problems.
      */
-    public let diskCache: DiskCache
-
-    /**
-     Data source which will be queried for data if none is found in disk cache.
-     */
-    public var dataSource: CacheDataSource?
+    public let diskCache: DiskCache<ValueType>
 
     /**
      Serial queue used to synchronize access to the cache.
@@ -101,34 +82,26 @@ open class DataCache {
      */
     private let completionQueue: DispatchQueue
 
-    /**
-     Completions waiting for data source to populate cache.
-     */
-    private var waitingCompletions = [String: [DeferredCompletionWrapper]]()
-
-    public init(name: String = "no.nrk.yr.cache", completionQueue: DispatchQueue = DispatchQueue.global(qos: .background), diskBaseURL: URL? = nil) {
+    public init(name: String = "no.nrk.yr.cache", completionQueue: DispatchQueue? = nil, diskBaseURL: URL? = nil) {
         self.name = name
-        self.completionQueue = completionQueue
-        memoryCache = MemoryCache(name: name)
-        diskCache = DiskCache(name: name, baseURL: diskBaseURL)
+        self.completionQueue = completionQueue ?? DispatchQueue(label: "no.nrk.yr.cache.completion")
+        memoryCache = MemoryCache<ValueType>(name: name)
+        diskCache = DiskCache<ValueType>(name: name, baseURL: diskBaseURL)
     }
 
     /**
      Synchronously check if value identified by key exists in cache.
      */
-    open func contains(key: String, access: AccessOptions = .default) -> Bool {
-        var found = false
-        accessQueue.sync {
-            found = _contains(key: key, access: access)
+    public func contains(key: String, access: DataCacheAccessOptions = .default) -> Bool {
+        return accessQueue.sync {
+            return _contains(key: key, access: access)
         }
-
-        return found
     }
 
     /**
      Asynchronously check if value identified by key exists in cache.
      */
-    open func contains(key: String, access: AccessOptions = .default, completion: @escaping (Bool) -> Void) {
+    public func contains(key: String, access: DataCacheAccessOptions = .default, completion: @escaping (Bool) -> Void) {
         accessQueue.async {
             let found = self._contains(key: key, access: access)
             self.completionQueue.async {
@@ -140,7 +113,7 @@ open class DataCache {
     /**
      Directly check if value identified by key exists in cache. Not thread-safe.
      */
-    private func _contains(key: String, access: AccessOptions = .default) -> Bool {
+    private func _contains(key: String, access: DataCacheAccessOptions = .default) -> Bool {
         var found = false
 
         if access.contains(.memory) {
@@ -155,91 +128,32 @@ open class DataCache {
     }
 
     /**
-     Synchronously fetch value from cache. Will not query data source if value is not found.
+     Synchronously fetch value from cache.
      */
-    open func value<ValueType: DataConvertable>(for key: String, access: AccessOptions = .default) -> ValueType? {
-        var value: ValueType? = nil
-        accessQueue.sync {
-            value = _value(for: key, access: access)
+    public func value(forKey key: String, access: DataCacheAccessOptions = .default) -> ValueType? {
+        return accessQueue.sync {
+            return _value(for: key, access: access)
         }
-
-        return value
     }
 
     /**
-     Fetch value from cache. If a data source has been set it will be queried when a value is not found.
+     Asynchronously fetch value from cache.
      */
-    @discardableResult
-    open func value<ValueType: DataConvertable>(for key: String, access: AccessOptions = .default, completion: @escaping ValueCompletion<ValueType>) -> Any? {
-
-        var dataSourceClientData: Any? = nil
-
-        accessQueue.sync {
-            // Check if key is waiting for data source to populate cache
-            if self.isKeyWaiting(key) {
-                self.addDeferredCompletion(completion, for: key)
-                return
-            }
-
-            if let value: ValueType = self._value(for: key, access: access) {
-                self.completionQueue.async {
-                    completion(value)
-                }
-                return
-            }
-
-            guard access.contains(.dataSource), let dataSource = self.dataSource else {
-                CacheLog.verbose("Value for '\(key)' not found in data cache.")
-                self.completionQueue.async {
-                    completion(nil)
-                }
-                return
-            }
-
-            CacheLog.verbose("Looking for '\(key)' in data source.")
-
-            // Add current completion to data source completion queue
-            self.addDeferredCompletion(completion, for: key)
-
-            dataSourceClientData = dataSource.data(for: key) { [weak self] (data, expiration) in
-                guard let strongSelf = self else { return }
-
-                strongSelf.accessQueue.async {
-                    var value: Any? = nil
-                    if let data = data {
-                        CacheLog.verbose("Value for '\(key)' found in data source, expires '\(strongSelf.stringFromDate(expiration))'")
-
-                        strongSelf.diskCache.setValue(data, for: key, expires: expiration)
-                        CacheLog.verbose("Value for '\(key)' written to disk cache")
-
-                        // The value of the current type isn't necessarily what the deferred
-                        // completions want, but it probably is and will save time, and populating
-                        // the memory cache is inexpensive at this point.
-                        value = ValueType.value(from: data)
-                        if let value = value as? ValueType {
-                            strongSelf.memoryCache.setValue(value, for: key, expires: expiration)
-                            CacheLog.verbose("Value for '\(key)' written to memory cache.")
-                        }
-                    }
-                    else {
-                        CacheLog.verbose("Value for '\(key)' not found in datasource")
-                    }
-
-                    // Perform all waiting completions
-                    strongSelf.performDeferredCompletions(for: key, value: value)
-                }
+    public func value(forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping ValueCompletion) {
+        accessQueue.async {
+            let value = self._value(for: key, access: access)
+            self.completionQueue.async {
+                completion(value)
             }
         }
-
-        return dataSourceClientData
     }
 
     /**
-     Common synchronous fetch value function. Not thread safe, and will not use data source.
+     Common synchronous fetch value function. Not thread-safe.
      */
-    private func _value<ValueType: DataConvertable>(for key: String, access: AccessOptions = .default) -> ValueType? {
+    private func _value(for key: String, access: DataCacheAccessOptions = .default) -> ValueType? {
         if access.contains(.memory) {
-            if let value: ValueType = self.memoryCache.value(for: key) {
+            if let value = memoryCache.value(forKey: key) {
                 CacheLog.verbose("Value for '\(key)' found in memory cache")
                 return value
             }
@@ -248,10 +162,10 @@ open class DataCache {
         }
 
         if access.contains(.disk) {
-            if let value: ValueType = self.diskCache.value(for: key) {
-                let expires = self.diskCache.expirationDate(for: key)
+            if let value = diskCache.value(forKey: key) {
+                let expires = diskCache.expirationDate(forKey: key)
                 CacheLog.verbose("Value for '\(key)' found in disk cache, expires '\(self.stringFromDate(expires))'")
-                self.memoryCache.setValue(value, for: key, expires: expires)
+                memoryCache.setValue(value, forKey: key, expires: expires)
                 return value
             }
 
@@ -264,7 +178,7 @@ open class DataCache {
     /**
      Synchronously set value for key in both memory and disk caches, with optional expiration date.
      */
-    open func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil, access: AccessOptions = .default) {
+    public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil, access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _setValue(value, for: key, expires: expires, access: access)
         }
@@ -273,7 +187,7 @@ open class DataCache {
     /**
      Asynchronously set value for key in both memory and disk caches, with optional expiration date.
      */
-    open func setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil, access: AccessOptions = .default, completion: @escaping Completion) {
+    public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._setValue(value, for: key, expires: expires, access: access)
             self.completionQueue.async {
@@ -285,19 +199,19 @@ open class DataCache {
     /**
      Private common value setter. Not thread-safe.
      */
-    private func _setValue<ValueType: DataConvertable>(_ value: ValueType, for key: String, expires: Date? = nil, access: AccessOptions = .default) {
+    private func _setValue(_ value: ValueType, for key: String, expires: Date? = nil, access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
-            memoryCache.setValue(value, for: key, expires: expires)
+            memoryCache.setValue(value, forKey: key, expires: expires)
         }
         if access.contains(.disk) {
-            diskCache.setValue(value, for: key, expires: expires)
+            diskCache.setValue(value, forKey: key, expires: expires)
         }
     }
 
     /**
      Synchronously remove value for key.
      */
-    open func removeValue(for key: String, access: AccessOptions = .default) {
+    public func removeValue(forKey key: String, access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _removeValue(for: key, access: access)
         }
@@ -306,7 +220,7 @@ open class DataCache {
     /**
      Asynchronously remove value for key.
      */
-    open func removeValue(for key: String, access: AccessOptions = .default, completion: @escaping Completion) {
+    public func removeValue(forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._removeValue(for: key, access: access)
             self.completionQueue.async {
@@ -318,19 +232,19 @@ open class DataCache {
     /**
      Private common remove value function. Not thread-safe.
      */
-    private func _removeValue(for key: String, access: AccessOptions = .default) {
+    private func _removeValue(for key: String, access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
-            memoryCache.removeValue(for: key)
+            memoryCache.removeValue(forKey: key)
         }
         if access.contains(.disk) {
-            diskCache.removeValue(for: key)
+            diskCache.removeValue(forKey: key)
         }
     }
 
     /**
      Synchronously remove all values in both memory and disk caches.
      */
-    open func removeAll(access: AccessOptions = .default) {
+    public func removeAll(access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _removeAll(access: access)
         }
@@ -339,7 +253,7 @@ open class DataCache {
     /**
      Asynchronously remove all values in both memory and disk caches.
      */
-    open func removeAll(access: AccessOptions = .default, completion: @escaping Completion) {
+    public func removeAll(access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._removeAll(access: access)
             self.completionQueue.async {
@@ -351,7 +265,7 @@ open class DataCache {
     /**
      Private common remove all function. Not thread-safe.
      */
-    private func _removeAll(access: AccessOptions = .default) {
+    private func _removeAll(access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
             memoryCache.removeAll()
         }
@@ -363,7 +277,7 @@ open class DataCache {
     /**
      Synchronously remove expired values in both memory and disk caches.
      */
-    open func removeExpired(access: AccessOptions = .default) {
+    public func removeExpired(access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _removeExpired(access: access)
         }
@@ -372,7 +286,7 @@ open class DataCache {
     /**
      Asynchronously remove expired values in both memory and disk caches.
      */
-    open func removeExpired(access: AccessOptions = .default, completion: @escaping Completion) {
+    public func removeExpired(access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._removeExpired(access: access)
             self.completionQueue.async {
@@ -384,7 +298,7 @@ open class DataCache {
     /**
      Private common function that removes expired cache items. Not thread-safe.
      */
-    private func _removeExpired(access: AccessOptions = .default) {
+    private func _removeExpired(access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
             memoryCache.removeExpired()
         }
@@ -396,7 +310,7 @@ open class DataCache {
     /**
      Synchronously remove items older than the specified date.
      */
-    open func removeItems(olderThan date: Date, access: AccessOptions = .default) {
+    public func removeItems(olderThan date: Date, access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _removeItems(olderThan: date, access: access)
         }
@@ -405,7 +319,7 @@ open class DataCache {
     /**
      Asynchronously remove items older than the specified date.
      */
-    open func removeItems(olderThan date: Date, access: AccessOptions = .default, completion: @escaping Completion) {
+    public func removeItems(olderThan date: Date, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._removeItems(olderThan: date, access: access)
             self.completionQueue.async {
@@ -417,7 +331,7 @@ open class DataCache {
     /**
      Private common function to remove items older than a specified date. Not thread-safe.
      */
-    private func _removeItems(olderThan date: Date, access: AccessOptions = .default) {
+    private func _removeItems(olderThan date: Date, access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
             memoryCache.removeItems(olderThan: date)
         }
@@ -429,7 +343,7 @@ open class DataCache {
     /**
      Synchronously get expiration date for item identified by key.
      */
-    open func expirationDate(for key: String, access: AccessOptions = .default) -> Date? {
+    public func expirationDate(forKey key: String, access: DataCacheAccessOptions = .default) -> Date? {
         var date: Date? = nil
         accessQueue.sync {
             date = _expirationDate(for: key, access: access)
@@ -440,7 +354,7 @@ open class DataCache {
     /**
      Asynchronously get expiration date for item identified by key.
      */
-    open func expirationDate(for key: String, access: AccessOptions = .default, completion: @escaping (Date?) -> Void) {
+    public func expirationDate(forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping (Date?) -> Void) {
         accessQueue.async {
             let date = self._expirationDate(for: key, access: access)
             self.completionQueue.async {
@@ -452,13 +366,13 @@ open class DataCache {
     /**
      Private common function to get expiration date for item identified by key. Not thread-safe.
      */
-    private func _expirationDate(for key: String, access: AccessOptions = .default) -> Date? {
-        if access.contains(.memory), let expires = memoryCache.expirationDate(for: key) {
+    private func _expirationDate(for key: String, access: DataCacheAccessOptions = .default) -> Date? {
+        if access.contains(.memory), let expires = memoryCache.expirationDate(forKey: key) {
             return expires
         }
 
         if access.contains(.disk) {
-            return diskCache.expirationDate(for: key)
+            return diskCache.expirationDate(forKey: key)
         }
 
         return nil
@@ -468,7 +382,7 @@ open class DataCache {
      Synchronously set expiration date for item identified by key.
      Set expiration date to nil to remove it.
      */
-    open func setExpirationDate(_ date: Date?, for key: String, access: AccessOptions = .default) {
+    public func setExpirationDate(_ date: Date?, forKey key: String, access: DataCacheAccessOptions = .default) {
         accessQueue.sync {
             _setExpirationDate(date, for: key, access: access)
         }
@@ -478,7 +392,7 @@ open class DataCache {
      Asynchronously set expiration date for item identified by key.
      Set expiration date to nil to remove it.
      */
-    open func setExpirationDate(_ date: Date?, for key: String, access: AccessOptions = .default, completion: @escaping Completion) {
+    public func setExpirationDate(_ date: Date?, forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
         accessQueue.async {
             self._setExpirationDate(date, for: key, access: access)
             self.completionQueue.async {
@@ -490,12 +404,12 @@ open class DataCache {
     /**
      Private common function to set expiration date for item identified by key. Not thread-safe.
      */
-    private func _setExpirationDate(_ date: Date?, for key: String, access: AccessOptions = .default) {
+    private func _setExpirationDate(_ date: Date?, for key: String, access: DataCacheAccessOptions = .default) {
         if access.contains(.memory) {
-            memoryCache.setExpirationDate(date, for: key)
+            memoryCache.setExpirationDate(date, forKey: key)
         }
         if access.contains(.disk) {
-            diskCache.setExpirationDate(date, for: key)
+            diskCache.setExpirationDate(date, forKey: key)
         }
     }
 
@@ -507,36 +421,5 @@ open class DataCache {
             return "\(date)"
         }
         return ""
-    }
-
-    private func addDeferredCompletion<ValueType: DataConvertable>(_ completion: @escaping ValueCompletion<ValueType>, for key: String) {
-        let wrapper = DeferredCompletion(completion: completion)
-        if var completions = waitingCompletions[key] {
-            completions.append(wrapper)
-            waitingCompletions[key] = completions
-        } else {
-            waitingCompletions[key] = [wrapper]
-        }
-        CacheLog.verbose("Key \(key) queued for deferred completion.")
-    }
-
-    private func performDeferredCompletions(for key: String, value: Any?) {
-        guard let wrappers = waitingCompletions[key] else { return }
-        for wrapper in wrappers {
-            completionQueue.async {
-                wrapper.complete(with: value)
-            }
-        }
-        waitingCompletions[key] = nil
-    }
-
-    private func isKeyWaiting(_ key: String) -> Bool {
-        var mustWait = false
-        if let completions = waitingCompletions[key], !completions.isEmpty {
-            mustWait = true
-            CacheLog.verbose("'\(key)' is waiting for data source, completion enqueued.")
-        }
-
-        return mustWait
     }
 }
