@@ -49,13 +49,13 @@ extension Book: DataConvertable {
 }
 
 class DataCacheTests: XCTestCase {
-    var cache: DataCache!
+    var cache: DataCache<String>!
     let expectationWaitTime: TimeInterval = 5
 
     override func setUp() {
         super.setUp()
 
-        cache = DataCache()
+        cache = DataCache<String>()
     }
 
     override func tearDown() {
@@ -64,34 +64,12 @@ class DataCacheTests: XCTestCase {
         cache.removeAll()
     }
 
-    func testAsyncDataValue() {
-        let valueExpectation = expectation(description: "Data value in cache")
-        let foo = "bar".data(using: .utf8)!
-        cache.setValue(foo, for: "foo") {
-            self.cache.value(for: "foo") {
-                (value: Data?) in
-                XCTAssertNotNil(value)
-                XCTAssertEqual(foo, value!)
-                valueExpectation.fulfill()
-            }
-        }
-        waitForExpectations(timeout: expectationWaitTime)
-    }
-
-    func testSyncDataValue() {
-        let foo = "bar".data(using: .utf8)!
-        cache.setValue(foo, for: "foo")
-        let value: Data? = cache.value(for: "foo")
-        XCTAssertNotNil(value)
-        XCTAssertEqual(foo, value!)
-    }
-
     func testAsyncStringValue() {
         let valueExpectation = expectation(description: "String value in cache")
         let foo = "bar"
-        cache.setValue(foo, for: "foo") {
-            self.cache.value(for: "foo") {
-                (value: String?) in
+        cache.setValue(foo, forKey: "foo") {
+            self.cache.value(forKey: "foo") {
+                (value) in
                 XCTAssertNotNil(value)
                 XCTAssertEqual(foo, value!)
                 valueExpectation.fulfill()
@@ -102,9 +80,8 @@ class DataCacheTests: XCTestCase {
 
     func testSyncStringValue() {
         let foo = "bar"
-        cache.setValue(foo, for: "foo") {
-        }
-        let value: String? = cache.value(for: "foo")
+        cache.setValue(foo, forKey: "foo")
+        let value = cache.value(forKey: "foo")
         XCTAssertNotNil(value)
         XCTAssertEqual(foo, value!)
     }
@@ -114,7 +91,7 @@ class DataCacheTests: XCTestCase {
         let key = "foo"
         cache.contains(key: key) { (found) in
             XCTAssertFalse(found)
-            self.cache.setValue(key, for: key)
+            self.cache.setValue(key, forKey: key)
             self.cache.contains(key: key, completion: { (found) in
                 XCTAssertTrue(found)
                 expect.fulfill()
@@ -126,18 +103,18 @@ class DataCacheTests: XCTestCase {
     func testSyncContains() {
         let key = "foo"
         XCTAssertFalse(cache.contains(key: key))
-        cache.setValue(key, for: key)
+        cache.setValue(key, forKey: key)
         XCTAssertTrue(cache.contains(key: key))
     }
 
     func testAsyncRemove() {
         let expect = expectation(description: "Remove value in cache")
         let foo = "foo"
-        cache.setValue(foo, for: foo) {
-            self.cache.value(for: foo) { (value: String?) in
+        cache.setValue(foo, forKey: foo) {
+            self.cache.value(forKey: foo) { (value) in
                 XCTAssertNotNil(value)
-                self.cache.removeValue(for: foo) {
-                    self.cache.value(for: foo) { (value: String?) in
+                self.cache.removeValue(forKey: foo) {
+                    self.cache.value(forKey: foo) { (value) in
                         XCTAssertNil(value)
                         expect.fulfill()
                     }
@@ -149,11 +126,11 @@ class DataCacheTests: XCTestCase {
 
     func testSyncRemove() {
         let foo = "foo"
-        cache.setValue(foo, for: foo)
-        var value: String? = cache.value(for: foo)
+        cache.setValue(foo, forKey: foo)
+        var value = cache.value(forKey: foo)
         XCTAssertNotNil(value)
-        cache.removeValue(for: foo)
-        value = cache.value(for: foo)
+        cache.removeValue(forKey: foo)
+        value = cache.value(forKey: foo)
         XCTAssertNil(value)
     }
 
@@ -162,12 +139,12 @@ class DataCacheTests: XCTestCase {
         let foo = "foo"
         let bar = "bar"
 
-        cache.setValue(foo, for: foo)
-        cache.setValue(bar, for: bar) {
+        cache.setValue(foo, forKey: foo)
+        cache.setValue(bar, forKey: bar) {
             self.cache.removeAll() {
-                self.cache.value(for: foo) { (value: String?) in
+                self.cache.value(forKey: foo) { (value) in
                     XCTAssertNil(value)
-                    self.cache.value(for: bar) { (value: String?) in
+                    self.cache.value(forKey: bar) { (value) in
                         XCTAssertNil(value)
                         valueExpectation.fulfill()
                     }
@@ -181,12 +158,12 @@ class DataCacheTests: XCTestCase {
         let foo = "foo"
         let bar = "bar"
 
-        cache.setValue(foo, for: foo)
-        cache.setValue(bar, for: bar)
+        cache.setValue(foo, forKey: foo)
+        cache.setValue(bar, forKey: bar)
         self.cache.removeAll()
-        var value: String? = cache.value(for: foo)
+        var value = cache.value(forKey: foo)
         XCTAssertNil(value)
-        value = cache.value(for: bar)
+        value = cache.value(forKey: bar)
         XCTAssertNil(value)
     }
 
@@ -196,12 +173,12 @@ class DataCacheTests: XCTestCase {
         let bar = "bar"
         let barExpireDate = Date(timeIntervalSinceNow: -30)
 
-        cache.setValue(foo, for: foo)
-        cache.setValue(bar, for: bar, expires: barExpireDate)
+        cache.setValue(foo, forKey: foo)
+        cache.setValue(bar, forKey: bar, expires: barExpireDate)
         cache.removeExpired() {
-            self.cache.value(for: foo) { (value: String?) in
+            self.cache.value(forKey: foo) { (value) in
                 XCTAssertNotNil(value)
-                self.cache.value(for: bar) { (value: String?) in
+                self.cache.value(forKey: bar) { (value) in
                     XCTAssertNil(value)
                     valueExpectation.fulfill()
                 }
@@ -215,12 +192,12 @@ class DataCacheTests: XCTestCase {
         let bar = "bar"
         let barExpireDate = Date(timeIntervalSinceNow: -30)
 
-        cache.setValue(foo, for: foo)
-        cache.setValue(bar, for: bar, expires: barExpireDate)
+        cache.setValue(foo, forKey: foo)
+        cache.setValue(bar, forKey: bar, expires: barExpireDate)
         cache.removeExpired()
-        var value: String? = cache.value(for: foo)
+        var value = cache.value(forKey: foo)
         XCTAssertNotNil(value)
-        value = cache.value(for: bar)
+        value = cache.value(forKey: bar)
         XCTAssertNil(value)
     }
 
@@ -231,11 +208,11 @@ class DataCacheTests: XCTestCase {
         let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
 
         let foo = "foo"
-        cache.setValue(foo, for: foo)
-        cache.expirationDate(for: foo) { (noExpire) in
+        cache.setValue(foo, forKey: foo)
+        cache.expirationDate(forKey: foo) { (noExpire) in
             XCTAssertNil(noExpire)
-            self.cache.setExpirationDate(expires, for: foo, completion: {
-                self.cache.expirationDate(for: foo, completion: { (expire) in
+            self.cache.setExpirationDate(expires, forKey: foo, completion: {
+                self.cache.expirationDate(forKey: foo, completion: { (expire) in
                     XCTAssertNotNil(expire)
                     XCTAssertEqual(expires, expire)
                     expect.fulfill()
@@ -251,11 +228,11 @@ class DataCacheTests: XCTestCase {
         // No second fractions in expire date stored in extended attribute
         let expires = Date(timeIntervalSince1970: fullExpiration.timeIntervalSince1970.rounded())
         let foo = "foo"
-        cache.setValue(foo, for: foo)
-        let noExpire = cache.expirationDate(for: foo)
+        cache.setValue(foo, forKey: foo)
+        let noExpire = cache.expirationDate(forKey: foo)
         XCTAssertNil(noExpire)
-        cache.setExpirationDate(expires, for: foo)
-        let expire = cache.expirationDate(for: foo)
+        cache.setExpirationDate(expires, forKey: foo)
+        let expire = cache.expirationDate(forKey: foo)
         XCTAssertNotNil(expire)
         XCTAssertEqual(expires, expire)
     }
@@ -263,14 +240,14 @@ class DataCacheTests: XCTestCase {
     func testAsyncRemoveItemsOlderThan() {
         let expect = expectation(description: "Remove items older than")
         let foo = "foo"
-        cache.setValue(foo, for: foo)
+        cache.setValue(foo, forKey: foo)
 
         cache.removeItems(olderThan: Date(timeIntervalSinceNow: -30)) {
-            self.cache.value(for: foo) { (value: String?) in
+            self.cache.value(forKey: foo) { (value) in
                 XCTAssertNotNil(value)
 
                 self.cache.removeItems(olderThan: Date()) {
-                    self.cache.value(for: foo) { (value: String?) in
+                    self.cache.value(forKey: foo) { (value) in
                         XCTAssertNil(value)
                         expect.fulfill()
                     }
@@ -283,23 +260,23 @@ class DataCacheTests: XCTestCase {
     
     func testSyncRemoveItemsOlderThan() {
         let foo = "foo"
-        cache.setValue(foo, for: foo)
+        cache.setValue(foo, forKey: foo)
 
         cache.removeItems(olderThan: Date(timeIntervalSinceNow: -30))
-        var value: String? = cache.value(for: foo)
+        var value = cache.value(forKey: foo)
         XCTAssertNotNil(value)
 
         cache.removeItems(olderThan: Date())
-        value = cache.value(for: foo)
+        value = cache.value(forKey: foo)
         XCTAssertNil(value)
     }
 
     func testCompletionBackgroundQueue() {
         let expect = expectation(description: "Background queue completion")
         let currentThread = Thread.current
-        let cache = DataCache(name: "backgroundTest")
-        cache.setValue("asdf", for: "foo")
-        cache.value(for: "foo") { (value: String?) in
+        let cache = DataCache<String>(name: "backgroundTest")
+        cache.setValue("asdf", forKey: "foo")
+        cache.value(forKey: "foo") { (_) in
             XCTAssertNotEqual(currentThread, Thread.current)
             expect.fulfill()
         }
@@ -310,9 +287,9 @@ class DataCacheTests: XCTestCase {
 
     func testCompletionMainQueue() {
         let expect = expectation(description: "Main queue completion")
-        let cache = DataCache(name: "mainQueueTest", completionQueue: DispatchQueue.main)
-        cache.setValue("asdf", for: "foo")
-        cache.value(for: "foo") { (value: String?) in
+        let cache = DataCache<String>(name: "mainQueueTest", completionQueue: .main)
+        cache.setValue("asdf", forKey: "foo")
+        cache.value(forKey: "foo") { (_) in
             XCTAssertEqual(Thread.main, Thread.current)
             expect.fulfill()
         }
@@ -322,17 +299,12 @@ class DataCacheTests: XCTestCase {
     }
 
     func testModelTransform() {
+        let cache = DataCache<Book>()
         let weaveworld = Book(title: "Weaveworld")
         let key = "book"
-        cache.setValue(weaveworld, for: key)
+        cache.setValue(weaveworld, forKey: key, access: [.disk])
 
-        let data: Data? = cache.value(for: key)
-        XCTAssertNotNil(data)
-
-        let text: String? = cache.value(for: key)
-        XCTAssertNotNil(text)
-
-        let book: Book? = cache.value(for: key)
+        let book = cache.value(forKey: key)
         XCTAssertNotNil(book)
         XCTAssertEqual(weaveworld.title, book!.title)
     }
@@ -342,14 +314,14 @@ class DataCacheTests: XCTestCase {
         let value = "bar"
         let expires = Date.distantFuture
 
-        cache.diskCache.setValue(value, for: key, expires: expires)
-        let diskExpires = cache.diskCache.expirationDate(for: key)!
+        cache.diskCache.setValue(value, forKey: key, expires: expires)
+        let diskExpires = cache.diskCache.expirationDate(forKey: key)!
         XCTAssertEqual(diskExpires, expires)
 
         // Populate memory cache by requesting value in data cache
-        let cacheValue: String? = cache.value(for: key)
+        let cacheValue = cache.value(forKey: key)
         XCTAssertNotNil(cacheValue)
-        let memoryExpires = cache.memoryCache.expirationDate(for: key)
+        let memoryExpires = cache.memoryCache.expirationDate(forKey: key)
         XCTAssertEqual(memoryExpires, expires)
     }
 }

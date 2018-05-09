@@ -97,9 +97,9 @@ extension FileManager {
 
         // Prepare buffer
         let alignment = MemoryLayout<Int8>.alignment
-        let ptr = UnsafeMutableRawPointer.allocate(bytes: size, alignedTo: alignment)
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: alignment)
         defer {
-            ptr.deallocate(bytes: size, alignedTo: alignment)
+            ptr.deallocate()
         }
         size = getxattr(url.path, name, ptr, size, 0, 0)
 

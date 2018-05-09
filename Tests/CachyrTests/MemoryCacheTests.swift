@@ -26,37 +26,34 @@ import XCTest
 @testable import Cachyr
 
 class MemoryCacheTests: XCTestCase {
-    var cache: MemoryCache!
-
     override func setUp() {
         super.setUp()
-
-        cache = MemoryCache()
     }
 
     override func tearDown() {
         super.tearDown()
-
-        cache = nil
     }
 
     func testIntValues() {
-        cache.setValue(42, for: "Int")
-        let intValue: Int? = cache.value(for: "Int")
+        let cache = MemoryCache<Int>()
+        cache.setValue(42, forKey: "Int")
+        let intValue = cache.value(forKey: "Int")
         XCTAssertNotNil(intValue)
         XCTAssertEqual(42, intValue!)
     }
 
     func testDoubleValues() {
-        cache.setValue(42.0, for: "Double")
-        let doubleValue: Double? = cache.value(for: "Double")
+        let cache = MemoryCache<Double>()
+        cache.setValue(42.0, forKey: "Double")
+        let doubleValue = cache.value(forKey: "Double")
         XCTAssertNotNil(doubleValue)
         XCTAssertEqual(42.0, doubleValue!)
     }
 
     func testStringValues() {
-        cache.setValue("Test", for: "String")
-        let stringValue: String? = cache.value(for: "String")
+        let cache = MemoryCache<String>()
+        cache.setValue("Test", forKey: "String")
+        let stringValue = cache.value(forKey: "String")
         XCTAssertNotNil(stringValue)
         XCTAssertEqual("Test", stringValue!)
     }
@@ -66,8 +63,9 @@ class MemoryCacheTests: XCTestCase {
             let bar = "Bar"
         }
 
-        cache.setValue(Foo(), for: "Foo")
-        let foo: Foo? = cache.value(for: "Foo")
+        let cache = MemoryCache<Foo>()
+        cache.setValue(Foo(), forKey: "Foo")
+        let foo = cache.value(forKey: "Foo")
         XCTAssertNotNil(foo)
         XCTAssertEqual("Bar", foo!.bar)
     }
@@ -77,228 +75,252 @@ class MemoryCacheTests: XCTestCase {
             let bar = "Bar"
         }
 
-        cache.setValue(Foo(), for: "Foo")
-        let foo: Foo? = cache.value(for: "Foo")
+        let cache = MemoryCache<Foo>()
+        cache.setValue(Foo(), forKey: "Foo")
+        let foo = cache.value(forKey: "Foo")
         XCTAssertNotNil(foo)
         XCTAssertEqual("Bar", foo!.bar)
     }
 
     func testContains() {
+        let cache = MemoryCache<String>()
         let key = "foo"
         XCTAssertFalse(cache.contains(key: key))
-        cache.setValue(key, for: key)
+        cache.setValue(key, forKey: key)
         XCTAssertTrue(cache.contains(key: key))
     }
 
     func testRemove() {
+        let cache = MemoryCache<String>()
         let key = "foo"
-        cache.setValue(key, for: key)
-        var value: String? = cache.value(for: key)
+        cache.setValue(key, forKey: key)
+        var value = cache.value(forKey: key)
         XCTAssertNotNil(value)
-        cache.removeValue(for: key)
-        value = cache.value(for: key)
+        cache.removeValue(forKey: key)
+        value = cache.value(forKey: key)
         XCTAssertNil(value)
     }
 
     func testRemoveAll() {
+        let cache = MemoryCache<Int>()
         let values = [1, 2, 3]
         for i in values {
-            cache.setValue(i, for: "\(i)")
+            cache.setValue(i, forKey: "\(i)")
         }
         for i in values {
-            let value: Int? = cache.value(for: "\(i)")
+            let value = cache.value(forKey: "\(i)")
             XCTAssertNotNil(value)
             XCTAssertEqual(value!, i)
         }
         cache.removeAll()
         for i in values {
-            let value: Int? = cache.value(for: "\(i)")
+            let value = cache.value(forKey: "\(i)")
             XCTAssertNil(value)
         }
     }
 
     func testExpiration() {
+        let cache = MemoryCache<String>()
         let foo = "foo"
 
         let hasNotExpiredDate = Date(timeIntervalSinceNow: 30)
-        cache.setValue(foo, for: foo, expires: hasNotExpiredDate)
-        let notExpiredValue: String? = cache.value(for: foo)
+        cache.setValue(foo, forKey: foo, expires: hasNotExpiredDate)
+        let notExpiredValue = cache.value(forKey: foo)
         XCTAssertNotNil(notExpiredValue)
 
         let hasExpiredDate = Date(timeIntervalSinceNow: -30)
-        cache.setValue(foo, for: foo, expires: hasExpiredDate)
-        let expiredValue: String? = cache.value(for: foo)
+        cache.setValue(foo, forKey: foo, expires: hasExpiredDate)
+        let expiredValue = cache.value(forKey: foo)
         XCTAssertNil(expiredValue)
     }
 
     func testRemoveExpired() {
+        let cache = MemoryCache<String>()
         let foo = "foo"
         let bar = "bar"
         let barExpireDate = Date(timeIntervalSinceNow: -30)
 
-        cache.setValue(foo, for: foo)
-        cache.setValue(bar, for: bar, expires: barExpireDate)
+        cache.setValue(foo, forKey: foo)
+        cache.setValue(bar, forKey: bar, expires: barExpireDate)
         cache.removeExpired()
 
-        let fooValue: String? = cache.value(for: foo)
+        let fooValue = cache.value(forKey: foo)
         XCTAssertNotNil(fooValue)
-        let barValue: String? = cache.value(for: bar)
+        let barValue = cache.value(forKey: bar)
         XCTAssertNil(barValue)
     }
 
     func testExpirationInterval() {
+        let cache = MemoryCache<String>()
         let foo = "foo"
-        cache.setValue(foo, for: foo, expires: Date())
+        cache.setValue(foo, forKey: foo, expires: Date())
         cache.checkExpiredInterval = 0
-        let fooValue: String? = cache.value(for: foo)
+        let fooValue = cache.value(forKey: foo)
         XCTAssertNil(fooValue)
     }
 
     func testSetGetExpiration() {
+        let cache = MemoryCache<String>()
         let expires = Date().addingTimeInterval(10)
         let foo = "foo"
-        cache.setValue(foo, for: foo)
-        let noExpire = cache.expirationDate(for: foo)
+        cache.setValue(foo, forKey: foo)
+        let noExpire = cache.expirationDate(forKey: foo)
         XCTAssertNil(noExpire)
-        cache.setExpirationDate(expires, for: foo)
-        let expire = cache.expirationDate(for: foo)
+        cache.setExpirationDate(expires, forKey: foo)
+        let expire = cache.expirationDate(forKey: foo)
         XCTAssertNotNil(expire)
         XCTAssertEqual(expires, expire)
     }
 
     func testRemoveExpiration() {
+        let cache = MemoryCache<String>()
         let expiration = Date().addingTimeInterval(10)
         let foo = "foo"
-        cache.setValue(foo, for: foo)
-        let noExpire = cache.expirationDate(for: foo)
+        cache.setValue(foo, forKey: foo)
+        let noExpire = cache.expirationDate(forKey: foo)
         XCTAssertNil(noExpire)
-        cache.setExpirationDate(expiration, for: foo)
-        let expire = cache.expirationDate(for: foo)
+        cache.setExpirationDate(expiration, forKey: foo)
+        let expire = cache.expirationDate(forKey: foo)
         XCTAssertNotNil(expire)
-        cache.setExpirationDate(nil, for: foo)
-        let expirationGone = cache.expirationDate(for: foo)
+        cache.setExpirationDate(nil, forKey: foo)
+        let expirationGone = cache.expirationDate(forKey: foo)
         XCTAssertNil(expirationGone)
     }
 
     func testRemoveItemsOlderThan() {
+        let cache = MemoryCache<String>()
         let foo = "foo"
-        cache.setValue(foo, for: foo)
+        cache.setValue(foo, forKey: foo)
 
         cache.removeItems(olderThan: Date(timeIntervalSinceNow: -30))
-        XCTAssertNotNil(cache.value(for: foo))
+        XCTAssertNotNil(cache.value(forKey: foo))
 
         cache.removeItems(olderThan: Date())
-        XCTAssertNil(cache.value(for: foo))
+        XCTAssertNil(cache.value(forKey: foo))
     }
 
     func testInteger() {
+        let cacheInt = MemoryCache<Int>()
         let int = Int(Int.min)
-        cache.setValue(int, for: "Int")
-        let intValue: Int? = cache.value(for: "Int")
+        cacheInt.setValue(int, forKey: "Int")
+        let intValue = cacheInt.value(forKey: "Int")
         XCTAssertNotNil(intValue)
         XCTAssertEqual(intValue!, int)
 
+        let cacheInt8 = MemoryCache<Int8>()
         let int8 = Int8(Int8.min)
-        cache.setValue(int8, for: "Int8")
-        let int8Value: Int8? = cache.value(for: "Int8")
+        cacheInt8.setValue(int8, forKey: "Int8")
+        let int8Value = cacheInt8.value(forKey: "Int8")
         XCTAssertNotNil(int8Value)
         XCTAssertEqual(int8Value!, int8)
 
+        let cacheInt16 = MemoryCache<Int16>()
         let int16 = Int16(Int16.min)
-        cache.setValue(int16, for: "Int16")
-        let int16Value: Int16? = cache.value(for: "Int16")
+        cacheInt16.setValue(int16, forKey: "Int16")
+        let int16Value = cacheInt16.value(forKey: "Int16")
         XCTAssertNotNil(int16Value)
         XCTAssertEqual(int16Value!, int16)
 
+        let cacheInt32 = MemoryCache<Int32>()
         let int32 = Int32(Int32.min)
-        cache.setValue(int32, for: "Int32")
-        let int32Value: Int32? = cache.value(for: "Int32")
+        cacheInt32.setValue(int32, forKey: "Int32")
+        let int32Value = cacheInt32.value(forKey: "Int32")
         XCTAssertNotNil(int32Value)
         XCTAssertEqual(int32Value!, int32)
 
+        let cacheInt64 = MemoryCache<Int64>()
         let int64 = Int64(Int64.min)
-        cache.setValue(int64, for: "Int64")
-        let int64Value: Int64? = cache.value(for: "Int64")
+        cacheInt64.setValue(int64, forKey: "Int64")
+        let int64Value = cacheInt64.value(forKey: "Int64")
         XCTAssertNotNil(int64Value)
         XCTAssertEqual(int64Value!, int64)
 
+        let cacheUInt = MemoryCache<UInt>()
         let uint = UInt(UInt.max)
-        cache.setValue(uint, for: "UInt")
-        let uintValue: UInt? = cache.value(for: "UInt")
+        cacheUInt.setValue(uint, forKey: "UInt")
+        let uintValue = cacheUInt.value(forKey: "UInt")
         XCTAssertNotNil(uintValue)
         XCTAssertEqual(uintValue!, uint)
 
+        let cacheUInt8 = MemoryCache<UInt8>()
         let uint8 = UInt8(UInt8.max)
-        cache.setValue(uint8, for: "UInt8")
-        let uint8Value: UInt8? = cache.value(for: "UInt8")
+        cacheUInt8.setValue(uint8, forKey: "UInt8")
+        let uint8Value = cacheUInt8.value(forKey: "UInt8")
         XCTAssertNotNil(uint8Value)
         XCTAssertEqual(uint8Value!, uint8)
 
+        let cacheUInt16 = MemoryCache<UInt16>()
         let uint16 = UInt16(UInt16.max)
-        cache.setValue(uint16, for: "UInt16")
-        let uint16Value: UInt16? = cache.value(for: "UInt16")
+        cacheUInt16.setValue(uint16, forKey: "UInt16")
+        let uint16Value = cacheUInt16.value(forKey: "UInt16")
         XCTAssertNotNil(uint16Value)
         XCTAssertEqual(uint16Value!, uint16)
 
+        let cacheUInt32 = MemoryCache<UInt32>()
         let uint32 = UInt32(UInt32.max)
-        cache.setValue(uint32, for: "UInt32")
-        let uint32Value: UInt32? = cache.value(for: "UInt32")
+        cacheUInt32.setValue(uint32, forKey: "UInt32")
+        let uint32Value = cacheUInt32.value(forKey: "UInt32")
         XCTAssertNotNil(uint32Value)
         XCTAssertEqual(uint32Value!, uint32)
 
+        let cacheUInt64 = MemoryCache<UInt64>()
         let uint64 = UInt64(UInt64.max)
-        cache.setValue(uint64, for: "UInt64")
-        let uint64Value: UInt64? = cache.value(for: "UInt64")
+        cacheUInt64.setValue(uint64, forKey: "UInt64")
+        let uint64Value = cacheUInt64.value(forKey: "UInt64")
         XCTAssertNotNil(uint64Value)
         XCTAssertEqual(uint64Value!, uint64)
     }
 
     func testFloatingPoint() {
+        let cacheFloat = MemoryCache<Float>()
+
         let float = Float(Float.pi)
-        cache.setValue(float, for: "Float")
-        let floatValue: Float? = cache.value(for: "Float")
+        cacheFloat.setValue(float, forKey: "Float")
+        let floatValue = cacheFloat.value(forKey: "Float")
         XCTAssertNotNil(floatValue)
         XCTAssertEqual(floatValue!, float)
 
         let negFloat = Float(-Float.pi)
-        cache.setValue(negFloat, for: "negFloat")
-        let negFloatValue: Float? = cache.value(for: "negFloat")
+        cacheFloat.setValue(negFloat, forKey: "negFloat")
+        let negFloatValue = cacheFloat.value(forKey: "negFloat")
         XCTAssertNotNil(negFloatValue)
         XCTAssertEqual(negFloatValue!, negFloat)
 
         let infFloat = Float.infinity
-        cache.setValue(infFloat, for: "infFloat")
-        let infFloatValue: Float? = cache.value(for: "infFloat")
+        cacheFloat.setValue(infFloat, forKey: "infFloat")
+        let infFloatValue = cacheFloat.value(forKey: "infFloat")
         XCTAssertNotNil(infFloatValue)
         XCTAssertEqual(infFloatValue!, infFloat)
 
         let nanFloat = Float.nan
-        cache.setValue(nanFloat, for: "nanFloat")
-        let nanFloatValue: Float? = cache.value(for: "nanFloat")
+        cacheFloat.setValue(nanFloat, forKey: "nanFloat")
+        let nanFloatValue = cacheFloat.value(forKey: "nanFloat")
         XCTAssertNotNil(nanFloatValue)
         XCTAssertEqual(nanFloatValue!.isNaN, nanFloat.isNaN)
 
+        let cacheDouble = MemoryCache<Double>()
+
         let double = Double(Double.pi)
-        cache.setValue(double, for: "Double")
-        let doubleValue: Double? = cache.value(for: "Double")
+        cacheDouble.setValue(double, forKey: "Double")
+        let doubleValue = cacheDouble.value(forKey: "Double")
         XCTAssertNotNil(doubleValue)
         XCTAssertEqual(doubleValue!, double)
 
         let negDouble = Double(-Double.pi)
-        cache.setValue(negDouble, for: "negDouble")
-        let negDoubleValue: Double? = cache.value(for: "negDouble")
+        cacheDouble.setValue(negDouble, forKey: "negDouble")
+        let negDoubleValue = cacheDouble.value(forKey: "negDouble")
         XCTAssertNotNil(negDoubleValue)
         XCTAssertEqual(negDoubleValue!, negDouble)
 
         let infDouble = Double.infinity
-        cache.setValue(infDouble, for: "infDouble")
-        let infDoubleValue: Double? = cache.value(for: "infDouble")
+        cacheDouble.setValue(infDouble, forKey: "infDouble")
+        let infDoubleValue = cacheDouble.value(forKey: "infDouble")
         XCTAssertNotNil(infDoubleValue)
         XCTAssertEqual(infDoubleValue!, infDouble)
 
         let nanDouble = Double.nan
-        cache.setValue(nanDouble, for: "nanDouble")
-        let nanDoubleValue: Double? = cache.value(for: "nanDouble")
+        cacheDouble.setValue(nanDouble, forKey: "nanDouble")
+        let nanDoubleValue = cacheDouble.value(forKey: "nanDouble")
         XCTAssertNotNil(nanDoubleValue)
         XCTAssertEqual(nanDoubleValue!.isNaN, nanDouble.isNaN)
     }
