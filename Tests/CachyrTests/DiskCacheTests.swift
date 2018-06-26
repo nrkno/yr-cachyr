@@ -190,6 +190,24 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNil(cache.value(forKey: foo) as String?)
     }
 
+    func testStorageNameLength() {
+        let shortName = "shortFilename"
+        let shortStorageName = cache.storageName(for: shortName)
+        XCTAssertTrue(shortStorageName.lengthOfBytes(using: .utf8) <= 255)
+
+        let longName = String(repeating: "1234567890", count: 30)
+        let longStorage = cache.storageName(for: longName)
+        XCTAssertTrue(longStorage.lengthOfBytes(using: .utf8) <= 255)
+
+        let longEncodedName = String(repeating: "1%2F2%2F3%2F4%2F5%2F6%2F7%2F8%2F9%2F0", count: 30)
+        let longEncodedStorage = cache.storageName(for: longEncodedName)
+        XCTAssertTrue(longEncodedStorage.lengthOfBytes(using: .utf8) <= 255)
+
+        let longUnicodeName = String(repeating: "1\u{200}2\u{200}3\u{200}4\u{200}5\u{200}6\u{200}7\u{200}8\u{200}9\u{200}0", count: 30)
+        let longUnicodeStorage = cache.storageName(for: longUnicodeName)
+        XCTAssertTrue(longUnicodeStorage.lengthOfBytes(using: .utf8) <= 255)
+    }
+
     func testInteger() {
         let cacheInt = DiskCache<Int>()
         defer { cacheInt.removeAll() }

@@ -44,12 +44,40 @@ open class DiskCache<ValueType: DataConvertable> {
 
      [Comparison of filename limitations](https://en.wikipedia.org/wiki/Filename#Comparison_of_filename_limitations)
      */
-    private let allowedFilesystemCharacters: CharacterSet
+    private let allowedFilesystemCharacters: CharacterSet = {
+        var chars = CharacterSet(charactersIn: UnicodeScalar(0) ... UnicodeScalar(31)) // 0x00-0x1F
+        chars.insert(UnicodeScalar(127)) // 0x7F
+        chars.insert(charactersIn: "\"*/:<>?\\|")
+        return chars.inverted
+    }()
+
+    /**
+     Max byte length of (encoded) filenames. Files with longer names keep the maximum suffix length
+     with a UUID string prefix.
+     */
+    private let maxFilenameLength = 255
+
+    /**
+     Length (bytes) of an UUID string.
+     */
+    private let uuidLength = 36
 
     /**
      Name of extended attribute that stores expire date.
      */
     private let expireDateAttributeName = "no.nrk.yr.cachyr.expireDate"
+
+    /**
+     Name of the extended attribute that holds the key.
+     */
+    private let keyAttributeName = "no.nrk.yr.cachyr.key"
+
+    /**
+     Map of keys to storage keys. Since keys can have length longer than the filename length limit,
+     they must be mapped to a shorter unique key used as the filename. The actual key is stored in an
+     extended attribute on the file, thus creating a simple file-based database.
+     */
+    private var storageKeyMap = [String: String]()
 
     /**
      Storage for the url property.
@@ -95,11 +123,6 @@ open class DiskCache<ValueType: DataConvertable> {
     public init(name: String = "no.nrk.yr.cache.disk", baseURL: URL? = nil) {
         self.name = name
 
-        var chars = CharacterSet(charactersIn: UnicodeScalar(0) ... UnicodeScalar(31)) // 0x00-0x1F
-        chars.insert(UnicodeScalar(127)) // 0x7F
-        chars.insert(charactersIn: "\"*/:<>?\\|")
-        allowedFilesystemCharacters = chars.inverted
-
         if let baseURL = baseURL {
             self.url = baseURL.appendingPathComponent(name, isDirectory: true)
         } else {
@@ -109,15 +132,17 @@ open class DiskCache<ValueType: DataConvertable> {
                 CacheLog.error("Unable to get system cache directory URL")
             }
         }
+
+        loadStorageKeyMap()
     }
 
     public func contains(key: String) -> Bool {
-        if let url = fileURL(for: key) {
-            return accessQueue.sync {
-                return FileManager.default.fileExists(atPath: url.path)
-            }
+        guard let url = mappedFileURL(for: key) else {
+            return false
         }
-        return false
+        return accessQueue.sync {
+            return FileManager.default.fileExists(atPath: url.path)
+        }
     }
 
     public func value(forKey key: String) -> ValueType? {
@@ -176,7 +201,7 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     public func expirationDate(forKey key: String) -> Date? {
-        guard let url = fileURL(for: key) else {
+        guard let url = mappedFileURL(for: key) else {
             return nil
         }
         return accessQueue.sync {
@@ -185,7 +210,7 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     public func setExpirationDate(_ date: Date?, forKey key: String) {
-        guard let url = fileURL(for: key) else {
+        guard let url = mappedFileURL(for: key) else {
             return
         }
         accessQueue.sync {
@@ -195,16 +220,7 @@ open class DiskCache<ValueType: DataConvertable> {
 
     public func removeItems(olderThan date: Date) {
         accessQueue.sync {
-            guard let url = url else { return }
-            let allFiles: [URL]
-            do {
-                allFiles = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [.creationDateKey])
-            }
-            catch let error {
-                CacheLog.error(error.localizedDescription)
-                return
-            }
-
+            let allFiles = filesInCache(properties: [.nameKey, .creationDateKey])
             allFiles.forEach { (fileUrl) in
                 guard let resourceValues = try? fileUrl.resourceValues(forKeys: [.creationDateKey]) else { return }
                 if let created = resourceValues.creationDate, created <= date {
@@ -223,12 +239,18 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     private func fileURL(for key: String) -> URL? {
-        let encodedKey = encode(key: key)
-        return self.url?.appendingPathComponent(encodedKey)
+        return self.url?.appendingPathComponent(key)
+    }
+
+    private func mappedFileURL(for key: String) -> URL? {
+        guard let storageKey = storageKeyMap[key] else {
+            return nil
+        }
+        return fileURL(for: storageKey)
     }
 
     private func fileFor(key: String) -> Data? {
-        guard let fileURL = fileURL(for: key) else {
+        guard let fileURL = mappedFileURL(for: key) else {
             return nil
         }
 
@@ -240,16 +262,77 @@ open class DiskCache<ValueType: DataConvertable> {
         return FileManager.default.contents(atPath: fileURL.path)
     }
 
+    private func filesInCache(properties: [URLResourceKey]? = [.nameKey]) -> [URL] {
+        guard let url = self.url else {
+            return []
+        }
+
+        do {
+            let files = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: properties, options: [.skipsHiddenFiles])
+            return files
+        } catch {
+            CacheLog.error("\(error)")
+            return []
+        }
+    }
+
+    func storageName(for key: String) -> String {
+        let encodedKey = encode(key: key)
+        guard encodedKey.lengthOfBytes(using: .utf8) > maxFilenameLength else {
+            return encodedKey
+        }
+
+        var length = maxFilenameLength
+        var suffix: Substring = ""
+        repeat {
+            // Dropping characters doesn't necessarily give us the wanted byte length
+            suffix = encodedKey.suffix(length)
+            length -= 4
+        } while suffix.lengthOfBytes(using: .utf8) > maxFilenameLength
+
+        let prefix = UUID().uuidString
+        var truncatedKey = String(suffix)
+        let beginIndex = truncatedKey.startIndex
+        let endIndex = truncatedKey.index(beginIndex, offsetBy: uuidLength)
+        truncatedKey.replaceSubrange(beginIndex ..< endIndex, with: prefix)
+
+        return truncatedKey
+    }
+
     private func addFile(for key: String, data: Data, expires: Date? = nil) {
-        guard let fileURL = fileURL(for: key) else {
-            CacheLog.error("Unable to create file URL for \(key)")
+        let fileURL: URL
+
+        let storageKey = storageKeyMap[key] ?? storageName(for: key)
+        if let url = self.fileURL(for: storageKey) {
+            fileURL = url
+        } else {
+            CacheLog.error("Unable to create file URL for \(storageKey)")
             return
         }
 
-        if !FileManager.default.createFile(atPath: fileURL.path, contents: data, attributes: nil) {
+        let fm = FileManager.default
+        if !fm.createFile(atPath: fileURL.path, contents: data, attributes: nil) {
             CacheLog.error("Unable to create file at \(fileURL.path)")
             return
         }
+
+        guard let keyData = key.data(using: .utf8) else {
+            CacheLog.error("Key is not UTF-8 compatible: \(key)")
+            storageKeyMap[key] = nil
+            try? fm.removeItem(at: fileURL)
+            return
+        }
+
+        do {
+            try fm.setExtendedAttribute(keyAttributeName, on: fileURL, data: keyData)
+        } catch {
+            CacheLog.error("\(error)")
+            storageKeyMap[key] = nil
+            try? fm.removeItem(at: fileURL)
+            return
+        }
+
+        storageKeyMap[key] = storageKey
 
         if let expires = expires {
             setExpiration(expires, for: fileURL)
@@ -257,10 +340,11 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     private func removeFile(for key: String) {
-        guard let fileURL = fileURL(for: key) else {
+        guard let fileURL = self.mappedFileURL(for: key) else {
             CacheLog.error("Unable to create file URL for '\(key)'")
             return
         }
+        storageKeyMap[key] = nil
         removeFile(at: fileURL)
     }
 
@@ -272,6 +356,8 @@ open class DiskCache<ValueType: DataConvertable> {
             CacheLog.error(error.localizedDescription)
         }
     }
+
+    // MARK: Expiration
 
     /**
      Check expiration date extended attribute of file.
@@ -331,18 +417,12 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     private func removeExpiredItems() {
-        guard let url = url else { return }
-        let allFiles: [URL]
-        do {
-            allFiles = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
-        }
-        catch let error {
-            CacheLog.error(error.localizedDescription)
-            return
-        }
-
+        let allFiles = filesInCache()
         let files = allFiles.filter { fileExpired(fileURL: $0) }
         for fileURL in files {
+            if let key = keyForFile(fileURL) {
+                storageKeyMap[key] = nil
+            }
             removeFile(at: fileURL)
         }
 
@@ -361,5 +441,76 @@ open class DiskCache<ValueType: DataConvertable> {
             return false
         }
         return date < Date()
+    }
+
+    // MARK: Storage key
+
+    /**
+     Get key from extended attribute of file.
+     */
+    private func keyForFile(_ url: URL) -> String? {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: url.path) else {
+            return nil
+        }
+
+        var key: String?
+        do {
+            let data = try fm.extendedAttribute(keyAttributeName, on: url)
+            key = String(data: data, encoding: .utf8)
+        } catch {
+            CacheLog.error("\(error)")
+        }
+
+        return key
+    }
+
+    /**
+     Set key as extended attribute.
+     */
+    private func setKey(_ key: String, for file: URL) -> Bool {
+        guard let data = key.data(using: .utf8) else {
+            CacheLog.error("Unable to convert key \(key) to data")
+            return false
+        }
+
+        var didSet = false
+        do {
+            try FileManager.default.setExtendedAttribute(keyAttributeName, on: file, data: data)
+            didSet = true
+        } catch let error as ExtendedAttributeError {
+            CacheLog.error("\(error.name) \(error.code) \(error.description) \(file.path)")
+        } catch {
+            CacheLog.error("Error setting expire date extended attribute on \(file.path)")
+        }
+
+        return didSet
+    }
+
+    /**
+     Reset storage key map and load all keys from files in cache.
+     */
+    private func loadStorageKeyMap() {
+        storageKeyMap.removeAll()
+
+        let files = filesInCache()
+        for file in files {
+            let key: String
+            let storageKey: String
+
+            if let foundKey = keyForFile(file) {
+                key = foundKey
+                storageKey = file.lastPathComponent
+            } else {
+                // Old key scheme where filename is the key
+                key = decode(key: file.lastPathComponent)
+                storageKey = storageName(for: key)
+                guard setKey(key, for: file) else {
+                    continue
+                }
+            }
+
+            storageKeyMap[key] = storageKey
+        }
     }
 }
