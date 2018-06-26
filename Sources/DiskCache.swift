@@ -458,8 +458,11 @@ open class DiskCache<ValueType: DataConvertable> {
         do {
             let data = try fm.extendedAttribute(keyAttributeName, on: url)
             key = String(data: data, encoding: .utf8)
+            if key == nil {
+                CacheLog.error("Unable to decode key from data for extended attribute '\(keyAttributeName)'")
+            }
         } catch {
-            CacheLog.error("\(error)")
+            CacheLog.error("Extended attribute '\(keyAttributeName)' not found on \(url.absoluteString)\n\(error)")
         }
 
         return key
@@ -478,10 +481,8 @@ open class DiskCache<ValueType: DataConvertable> {
         do {
             try FileManager.default.setExtendedAttribute(keyAttributeName, on: file, data: data)
             didSet = true
-        } catch let error as ExtendedAttributeError {
-            CacheLog.error("\(error.name) \(error.code) \(error.description) \(file.path)")
         } catch {
-            CacheLog.error("Error setting expire date extended attribute on \(file.path)")
+            CacheLog.error("Error setting extended attribute '\(keyAttributeName)' for key '\(key)' (\(data.count) bytes) on \(file.absoluteString)\n\(error)")
         }
 
         return didSet
