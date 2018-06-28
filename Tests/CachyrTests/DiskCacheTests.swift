@@ -102,7 +102,7 @@ class DiskCacheTests: XCTestCase {
     }
 
     func testFileCreation() {
-        let key = "/foo:bar\\"
+        let key = "/foo:b/ar\\"
         cache.setValue(key, forKey: key)
         let fileURL = cache.fileURL(for: cache.encode(key: key))
         XCTAssertNotNil(fileURL)

@@ -240,8 +240,7 @@ open class DiskCache<ValueType: DataConvertable> {
 
     func fileURL(for key: String) -> URL? {
         guard let url = self.url else { return nil }
-        // Do not use appendPathComponent to avoid double encode
-        return URL(string: url.absoluteString + key)
+        return url.appendingPathComponent(key, isDirectory: false)
     }
 
     func mappedFileURL(for key: String) -> URL? {
