@@ -238,11 +238,13 @@ open class DiskCache<ValueType: DataConvertable> {
         return key.removingPercentEncoding!
     }
 
-    private func fileURL(for key: String) -> URL? {
-        return self.url?.appendingPathComponent(key)
+    func fileURL(for key: String) -> URL? {
+        guard let url = self.url else { return nil }
+        // Do not use appendPathComponent to avoid double encode
+        return URL(string: url.absoluteString + key)
     }
 
-    private func mappedFileURL(for key: String) -> URL? {
+    func mappedFileURL(for key: String) -> URL? {
         guard let storageKey = storageKeyMap[key] else {
             return nil
         }

@@ -104,7 +104,7 @@ class DiskCacheTests: XCTestCase {
     func testFileCreation() {
         let key = "/foo:bar\\"
         cache.setValue(key, forKey: key)
-        let fileURL = cache.url?.appendingPathComponent(cache.encode(key: key))
+        let fileURL = cache.fileURL(for: cache.encode(key: key))
         XCTAssertNotNil(fileURL)
         let exists = FileManager.default.fileExists(atPath: fileURL!.path)
         XCTAssertTrue(exists)
