@@ -208,6 +208,14 @@ class DiskCacheTests: XCTestCase {
         XCTAssertTrue(longUnicodeStorage.lengthOfBytes(using: .utf8) <= 255)
     }
 
+    func testStorageSize() {
+        let data = "123456789"
+        let dataSize = data.utf8.count
+        cache.setValue(data, forKey: "data")
+        let size = cache.storageSize
+        XCTAssertEqual(dataSize, size)
+    }
+
     func testInteger() {
         let cacheInt = DiskCache<Int>()
         defer { cacheInt.removeAll() }

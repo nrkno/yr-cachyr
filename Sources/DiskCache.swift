@@ -116,6 +116,31 @@ open class DiskCache<ValueType: DataConvertable> {
     }
 
     /**
+     The number of bytes used by the contents of the cache.
+     */
+    public var storageSize: Int {
+        guard let url = self.url else {
+            return 0
+        }
+
+        let fm = FileManager.default
+        var size = 0
+
+        do {
+            let files = try fm.contentsOfDirectory(at: url, includingPropertiesForKeys: [.fileSizeKey])
+            size = files.reduce(0, { (totalSize, url) -> Int in
+                let attributes = (try? fm.attributesOfItem(atPath: url.path)) ?? [:]
+                let fileSize = (attributes[.size] as? NSNumber)?.intValue ?? 0
+                return totalSize + fileSize
+            })
+        } catch {
+            CacheLog.error("\(error)")
+        }
+
+        return size
+    }
+
+    /**
      Last time expired items were removed.
      */
     public private(set) var lastRemoveExpired = Date(timeIntervalSince1970: 0)
