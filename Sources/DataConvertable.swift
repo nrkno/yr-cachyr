@@ -59,8 +59,9 @@ extension BinaryInteger {
         guard data.count == MemoryLayout<Self>.size else {
             return nil
         }
-        return data.withUnsafeBytes { (ptr: UnsafePointer<Self>) -> Self in
-            return ptr.pointee
+        return data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) -> Self? in
+            let raw = ptr.bindMemory(to: Self.self)
+            return raw.first
         }
     }
 }

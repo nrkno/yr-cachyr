@@ -61,41 +61,41 @@ public struct CacheLog {
 
     public static func verbose(_ message: @autoclosure () -> Any, _ file: String = #file, _ function: String = #function, line: Int = #line) {
         if let logger = CacheLog.logger {
-            logger.verbose(message, file, function, line: line)
+            logger.verbose(message(), file, function, line: line)
         } else {
-            log(level: .verbose, message: message, file: file, function: function, line: line)
+            log(level: .verbose, message: message(), file: file, function: function, line: line)
         }
     }
 
     public static func debug(_ message: @autoclosure () -> Any, _ file: String = #file, _ function: String = #function, line: Int = #line) {
         if let logger = CacheLog.logger {
-            logger.debug(message, file, function, line: line)
+            logger.debug(message(), file, function, line: line)
         } else {
-            log(level: .debug, message: message, file: file, function: function, line: line)
+            log(level: .debug, message: message(), file: file, function: function, line: line)
         }
     }
 
     public static func info(_ message: @autoclosure () -> Any, _ file: String = #file, _ function: String = #function, line: Int = #line) {
         if let logger = CacheLog.logger {
-            logger.info(message, file, function, line: line)
+            logger.info(message(), file, function, line: line)
         } else {
-            log(level: .info, message: message, file: file, function: function, line: line)
+            log(level: .info, message: message(), file: file, function: function, line: line)
         }
     }
 
     public static func warning(_ message: @autoclosure () -> Any, _ file: String = #file, _ function: String = #function, line: Int = #line) {
         if let logger = CacheLog.logger {
-            logger.warning(message, file, function, line: line)
+            logger.warning(message(), file, function, line: line)
         } else {
-            log(level: .warning, message: message, file: file, function: function, line: line)
+            log(level: .warning, message: message(), file: file, function: function, line: line)
         }
     }
 
     public static func error(_ message: @autoclosure () -> Any, _ file: String = #file, _ function: String = #function, line: Int = #line) {
         if let logger = CacheLog.logger {
-            logger.error(message, file, function, line: line)
+            logger.error(message(), file, function, line: line)
         } else {
-            log(level: .error, message: message, file: file, function: function, line: line)
+            log(level: .error, message: message(), file: file, function: function, line: line)
         }
     }
 

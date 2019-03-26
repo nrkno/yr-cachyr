@@ -107,8 +107,10 @@ extension FileManager {
     }
 
     func setExtendedAttribute(_ name: String, on url: URL, data: Data) throws {
-        try data.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> Void in
-            let ptr = UnsafeRawPointer(bytes)
+        try data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> Void in
+            guard let ptr = bytes.baseAddress else {
+                return
+            }
             let result = setxattr(url.path, name, ptr, data.count, 0, 0)
             if result == -1 {
                 throw ExtendedAttributeError(errno: errno)
