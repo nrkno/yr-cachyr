@@ -82,11 +82,14 @@ open class DataCache<ValueType: DataConvertable> {
      */
     private let completionQueue: DispatchQueue
 
-    public init(name: String = "no.nrk.yr.cache", completionQueue: DispatchQueue? = nil, diskBaseURL: URL? = nil) {
+    public init?(name: String = "no.nrk.yr.cache", completionQueue: DispatchQueue? = nil, diskBaseURL: URL? = nil) {
         self.name = name
         self.completionQueue = completionQueue ?? DispatchQueue(label: "no.nrk.yr.cache.completion")
-        memoryCache = MemoryCache<ValueType>(name: name)
-        diskCache = DiskCache<ValueType>(name: name, baseURL: diskBaseURL)
+        self.memoryCache = MemoryCache<ValueType>(name: name)
+        guard let diskCache = DiskCache<ValueType>(name: name, baseURL: diskBaseURL) else {
+            return nil
+        }
+        self.diskCache = diskCache
     }
 
     /**

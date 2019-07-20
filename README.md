@@ -4,10 +4,9 @@ A typesafe key-value data cache for iOS, macOS, tvOS and watchOS written in Swif
 
 There already exists plenty of cache solutions, so why create one more? We had a few requirements where existing solutions fulfilled some of them but not all:
 
-- Written purely in Swift 3.
+- Written purely in Swift.
 - Type safety while still allowing any kind of data to be stored.
 - Disk and memory caching.
-- Easy way to populate cache when a lookup results in a cache miss.
 - Clean, single-purpose implementation. Do caching and nothing else.
 
 
@@ -66,7 +65,6 @@ For detailed usage examples take a look at [Usage.md](./Docs/Usage.md).
 
 This framework is production ready but there are still many possible improvements. Some known tasks are:
 
-- Better thread synchronization. The cache uses serial dispatch queues to handle concurrent access and memory/disk value synchronization. This makes the code easy to follow and reason about, but it is not as performant as a solution using the multiple reader single writer pattern. We tried using concurrent dispatch queues with dispatch barriers for cache updates, but it got messy and code readability suffered. In early development serial queues were the way to go, but there is room for improvement.
 - Limit for disk usage. The disk cache has no limit on how much data it stores.
 - Default `DataConvertable` support more common types.
 

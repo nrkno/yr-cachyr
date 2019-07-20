@@ -41,7 +41,7 @@ class DiskCacheTests: XCTestCase {
     }
 
     func testDataValue() {
-        let cache = DiskCache<Data>()
+        let cache = DiskCache<Data>()!
         defer { cache.removeAll() }
 
         let foo = "bar".data(using: .utf8)!
@@ -86,25 +86,10 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNil(bar)
     }
 
-    func testKeyEncode() {
-        let key = "foo"
-        let encodedKey = cache.encode(key: key)
-        XCTAssertEqual(encodedKey, key)
-        let decodedKey = cache.decode(key: encodedKey)
-        XCTAssertEqual(decodedKey, key)
-
-        let illegalKey = "/foo:bar\\"
-        let illegalKeyPreencoded = "%2Ffoo%3Abar%5C"
-        let encodedIllegalKey = cache.encode(key: illegalKey)
-        XCTAssertEqual(encodedIllegalKey, illegalKeyPreencoded)
-        let decodedIllegalKey = cache.decode(key: encodedIllegalKey)
-        XCTAssertEqual(decodedIllegalKey, illegalKey)
-    }
-
     func testFileCreation() {
         let key = "/foo:b/ar\\"
         cache.setValue(key, forKey: key)
-        let fileURL = cache.fileURL(for: cache.encode(key: key))
+        let fileURL = cache.fileURL(forKey: key)
         XCTAssertNotNil(fileURL)
         let exists = FileManager.default.fileExists(atPath: fileURL!.path)
         XCTAssertTrue(exists)
@@ -141,14 +126,6 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(fooValue)
         let barValue = cache.value(forKey: bar)
         XCTAssertNil(barValue)
-    }
-
-    func testExpirationInterval() {
-        let foo = "foo"
-        cache.setValue(foo, forKey: foo, expires: Date())
-        cache.checkExpiredInterval = 0
-        let fooValue = cache.value(forKey: foo)
-        XCTAssertNil(fooValue)
     }
 
     func testSetGetExpiration() {
@@ -190,24 +167,6 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNil(cache.value(forKey: foo) as String?)
     }
 
-    func testStorageNameLength() {
-        let shortName = "shortFilename"
-        let shortStorageName = cache.storageName(for: shortName)
-        XCTAssertTrue(shortStorageName.lengthOfBytes(using: .utf8) <= 255)
-
-        let longName = String(repeating: "1234567890", count: 30)
-        let longStorage = cache.storageName(for: longName)
-        XCTAssertTrue(longStorage.lengthOfBytes(using: .utf8) <= 255)
-
-        let longEncodedName = String(repeating: "1%2F2%2F3%2F4%2F5%2F6%2F7%2F8%2F9%2F0", count: 30)
-        let longEncodedStorage = cache.storageName(for: longEncodedName)
-        XCTAssertTrue(longEncodedStorage.lengthOfBytes(using: .utf8) <= 255)
-
-        let longUnicodeName = String(repeating: "1\u{200}2\u{200}3\u{200}4\u{200}5\u{200}6\u{200}7\u{200}8\u{200}9\u{200}0", count: 30)
-        let longUnicodeStorage = cache.storageName(for: longUnicodeName)
-        XCTAssertTrue(longUnicodeStorage.lengthOfBytes(using: .utf8) <= 255)
-    }
-
     func testStorageSize() {
         let data = "123456789"
         let dataSize = data.utf8.count
@@ -217,7 +176,7 @@ class DiskCacheTests: XCTestCase {
     }
 
     func testInteger() {
-        let cacheInt = DiskCache<Int>()
+        let cacheInt = DiskCache<Int>()!
         defer { cacheInt.removeAll() }
         let int = Int(Int.min)
         cacheInt.setValue(int, forKey: "Int")
@@ -225,7 +184,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(intValue)
         XCTAssertEqual(intValue!, int)
 
-        let cacheInt8 = DiskCache<Int8>()
+        let cacheInt8 = DiskCache<Int8>()!
         defer { cacheInt8.removeAll() }
         let int8 = Int8(Int8.min)
         cacheInt8.setValue(int8, forKey: "Int8")
@@ -233,7 +192,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(int8Value)
         XCTAssertEqual(int8Value!, int8)
 
-        let cacheInt16 = DiskCache<Int16>()
+        let cacheInt16 = DiskCache<Int16>()!
         defer { cacheInt16.removeAll() }
         let int16 = Int16(Int16.min)
         cacheInt16.setValue(int16, forKey: "Int16")
@@ -241,7 +200,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(int16Value)
         XCTAssertEqual(int16Value!, int16)
 
-        let cacheInt32 = DiskCache<Int32>()
+        let cacheInt32 = DiskCache<Int32>()!
         defer { cacheInt32.removeAll() }
         let int32 = Int32(Int32.min)
         cacheInt32.setValue(int32, forKey: "Int32")
@@ -249,7 +208,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(int32Value)
         XCTAssertEqual(int32Value!, int32)
 
-        let cacheInt64 = DiskCache<Int64>()
+        let cacheInt64 = DiskCache<Int64>()!
         defer { cacheInt64.removeAll() }
         let int64 = Int64(Int64.min)
         cacheInt64.setValue(int64, forKey: "Int64")
@@ -257,7 +216,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(int64Value)
         XCTAssertEqual(int64Value!, int64)
 
-        let cacheUInt = DiskCache<UInt>()
+        let cacheUInt = DiskCache<UInt>()!
         defer { cacheUInt.removeAll() }
         let uint = UInt(UInt.max)
         cacheUInt.setValue(uint, forKey: "UInt")
@@ -265,7 +224,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(uintValue)
         XCTAssertEqual(uintValue!, uint)
 
-        let cacheUInt8 = DiskCache<UInt8>()
+        let cacheUInt8 = DiskCache<UInt8>()!
         defer { cacheUInt8.removeAll() }
         let uint8 = UInt8(UInt8.max)
         cacheUInt8.setValue(uint8, forKey: "UInt8")
@@ -273,7 +232,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(uint8Value)
         XCTAssertEqual(uint8Value!, uint8)
 
-        let cacheUInt16 = DiskCache<UInt16>()
+        let cacheUInt16 = DiskCache<UInt16>()!
         defer { cacheUInt16.removeAll() }
         let uint16 = UInt16(UInt16.max)
         cacheUInt16.setValue(uint16, forKey: "UInt16")
@@ -281,7 +240,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(uint16Value)
         XCTAssertEqual(uint16Value!, uint16)
 
-        let cacheUInt32 = DiskCache<UInt32>()
+        let cacheUInt32 = DiskCache<UInt32>()!
         defer { cacheUInt32.removeAll() }
         let uint32 = UInt32(UInt32.max)
         cacheUInt32.setValue(uint32, forKey: "UInt32")
@@ -289,7 +248,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(uint32Value)
         XCTAssertEqual(uint32Value!, uint32)
 
-        let cacheUInt64 = DiskCache<UInt64>()
+        let cacheUInt64 = DiskCache<UInt64>()!
         defer { cacheUInt64.removeAll() }
         let uint64 = UInt64(UInt64.max)
         cacheUInt64.setValue(uint64, forKey: "UInt64")
@@ -299,7 +258,7 @@ class DiskCacheTests: XCTestCase {
     }
 
     func testFloatingPoint() {
-        let cacheFloat = DiskCache<Float>()
+        let cacheFloat = DiskCache<Float>()!
         defer { cacheFloat.removeAll() }
 
         let float = Float(Float.pi)
@@ -326,7 +285,7 @@ class DiskCacheTests: XCTestCase {
         XCTAssertNotNil(nanFloatValue)
         XCTAssertEqual(nanFloatValue!.isNaN, nanFloat.isNaN)
 
-        let cacheDouble = DiskCache<Double>()
+        let cacheDouble = DiskCache<Double>()!
         defer { cacheDouble.removeAll() }
 
         let double = Double(Double.pi)
