@@ -75,7 +75,7 @@ open class DataCache<ValueType: DataConvertable> {
     /**
      Serial queue used to synchronize access to the cache.
      */
-    private let accessQueue = DispatchQueue(label: "no.nrk.yr.cache.queue")
+    private let accessQueue = DispatchQueue(label: "no.nrk.yr.cache.queue", attributes: .concurrent)
 
     /**
      All completion closures are dispatched on this queue.
@@ -182,7 +182,7 @@ open class DataCache<ValueType: DataConvertable> {
      Synchronously set value for key in both memory and disk caches, with optional expiration date.
      */
     public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil, access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _setValue(value, for: key, expires: expires, access: access)
         }
     }
@@ -191,7 +191,7 @@ open class DataCache<ValueType: DataConvertable> {
      Asynchronously set value for key in both memory and disk caches, with optional expiration date.
      */
     public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._setValue(value, for: key, expires: expires, access: access)
             self.completionQueue.async {
                 completion()
@@ -215,7 +215,7 @@ open class DataCache<ValueType: DataConvertable> {
      Synchronously remove value for key.
      */
     public func removeValue(forKey key: String, access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _removeValue(for: key, access: access)
         }
     }
@@ -224,7 +224,7 @@ open class DataCache<ValueType: DataConvertable> {
      Asynchronously remove value for key.
      */
     public func removeValue(forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._removeValue(for: key, access: access)
             self.completionQueue.async {
                 completion()
@@ -248,7 +248,7 @@ open class DataCache<ValueType: DataConvertable> {
      Synchronously remove all values in both memory and disk caches.
      */
     public func removeAll(access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _removeAll(access: access)
         }
     }
@@ -257,7 +257,7 @@ open class DataCache<ValueType: DataConvertable> {
      Asynchronously remove all values in both memory and disk caches.
      */
     public func removeAll(access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._removeAll(access: access)
             self.completionQueue.async {
                 completion()
@@ -281,7 +281,7 @@ open class DataCache<ValueType: DataConvertable> {
      Synchronously remove expired values in both memory and disk caches.
      */
     public func removeExpired(access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _removeExpired(access: access)
         }
     }
@@ -290,7 +290,7 @@ open class DataCache<ValueType: DataConvertable> {
      Asynchronously remove expired values in both memory and disk caches.
      */
     public func removeExpired(access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._removeExpired(access: access)
             self.completionQueue.async {
                 completion()
@@ -314,7 +314,7 @@ open class DataCache<ValueType: DataConvertable> {
      Synchronously remove items older than the specified date.
      */
     public func removeItems(olderThan date: Date, access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _removeItems(olderThan: date, access: access)
         }
     }
@@ -323,7 +323,7 @@ open class DataCache<ValueType: DataConvertable> {
      Asynchronously remove items older than the specified date.
      */
     public func removeItems(olderThan date: Date, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._removeItems(olderThan: date, access: access)
             self.completionQueue.async {
                 completion()
@@ -386,7 +386,7 @@ open class DataCache<ValueType: DataConvertable> {
      Set expiration date to nil to remove it.
      */
     public func setExpirationDate(_ date: Date?, forKey key: String, access: DataCacheAccessOptions = .default) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             _setExpirationDate(date, for: key, access: access)
         }
     }
@@ -396,7 +396,7 @@ open class DataCache<ValueType: DataConvertable> {
      Set expiration date to nil to remove it.
      */
     public func setExpirationDate(_ date: Date?, forKey key: String, access: DataCacheAccessOptions = .default, completion: @escaping Completion) {
-        accessQueue.async {
+        accessQueue.async(flags: .barrier) {
             self._setExpirationDate(date, for: key, access: access)
             self.completionQueue.async {
                 completion()
