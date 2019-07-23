@@ -44,6 +44,10 @@
 		8E9B317B1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */; };
 		8E9B317C1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */; };
 		8E9B317D1DF9582B0007B377 /* MemoryCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */; };
+		8EB7265922E10DEA00110AE6 /* CacheItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7265822E10DEA00110AE6 /* CacheItem.swift */; };
+		8EB7265A22E10DEA00110AE6 /* CacheItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7265822E10DEA00110AE6 /* CacheItem.swift */; };
+		8EB7265B22E10DEA00110AE6 /* CacheItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7265822E10DEA00110AE6 /* CacheItem.swift */; };
+		8EB7265C22E10DEA00110AE6 /* CacheItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7265822E10DEA00110AE6 /* CacheItem.swift */; };
 		DD7502881C68FEDE006590AF /* Cachyr.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6DA0F1BF000BD002C0205 /* Cachyr.framework */; };
 		DD7502921C690C7A006590AF /* Cachyr.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6D9F01BEFFFBE002C0205 /* Cachyr.framework */; };
 /* End PBXBuildFile section */
@@ -88,6 +92,7 @@
 		8E9B316F1DF9582B0007B377 /* DataCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DataCacheTests.swift; path = Tests/CachyrTests/DataCacheTests.swift; sourceTree = "<group>"; };
 		8E9B31701DF9582B0007B377 /* DiskCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DiskCacheTests.swift; path = Tests/CachyrTests/DiskCacheTests.swift; sourceTree = "<group>"; };
 		8E9B31711DF9582B0007B377 /* MemoryCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MemoryCacheTests.swift; path = Tests/CachyrTests/MemoryCacheTests.swift; sourceTree = "<group>"; };
+		8EB7265822E10DEA00110AE6 /* CacheItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheItem.swift; sourceTree = "<group>"; };
 		AD2FAA261CD0B6D800659CF4 /* Cachyr.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Cachyr.plist; sourceTree = "<group>"; };
 		AD2FAA281CD0B6E100659CF4 /* CachyrTests.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = CachyrTests.plist; sourceTree = "<group>"; };
 		DD75027A1C68FCFC006590AF /* Cachyr-macOS Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Cachyr-macOS Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -186,6 +191,7 @@
 		8E9B31491DF957FE0007B377 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				8EB7265822E10DEA00110AE6 /* CacheItem.swift */,
 				8E9B314B1DF957FE0007B377 /* CacheLog.swift */,
 				8E9B314D1DF957FE0007B377 /* DataCache.swift */,
 				8E9B314E1DF957FE0007B377 /* DataConvertable.swift */,
@@ -513,6 +519,7 @@
 				8E9B31691DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31611DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315D1DF957FE0007B377 /* DataCache.swift in Sources */,
+				8EB7265922E10DEA00110AE6 /* CacheItem.swift in Sources */,
 				8E9B31651DF957FE0007B377 /* DiskCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -537,6 +544,7 @@
 				8E9B316B1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31631DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315F1DF957FE0007B377 /* DataCache.swift in Sources */,
+				8EB7265B22E10DEA00110AE6 /* CacheItem.swift in Sources */,
 				8E9B31671DF957FE0007B377 /* DiskCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -550,6 +558,7 @@
 				8E9B316C1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31641DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B31601DF957FE0007B377 /* DataCache.swift in Sources */,
+				8EB7265C22E10DEA00110AE6 /* CacheItem.swift in Sources */,
 				8E9B31681DF957FE0007B377 /* DiskCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -563,6 +572,7 @@
 				8E9B316A1DF957FE0007B377 /* MemoryCache.swift in Sources */,
 				8E9B31621DF957FE0007B377 /* DataConvertable.swift in Sources */,
 				8E9B315E1DF957FE0007B377 /* DataCache.swift in Sources */,
+				8EB7265A22E10DEA00110AE6 /* CacheItem.swift in Sources */,
 				8E9B31661DF957FE0007B377 /* DiskCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -740,7 +750,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-iOS";
 				PRODUCT_NAME = Cachyr;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -761,7 +771,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-iOS";
 				PRODUCT_NAME = Cachyr;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -810,7 +820,7 @@
 				INFOPLIST_FILE = Configs/Cachyr.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-watchOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-watchOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -831,7 +841,7 @@
 				INFOPLIST_FILE = Configs/Cachyr.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-watchOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-watchOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -853,7 +863,7 @@
 				INFOPLIST_FILE = Configs/Cachyr.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-tvOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
@@ -874,7 +884,7 @@
 				INFOPLIST_FILE = Configs/Cachyr.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-tvOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
@@ -899,7 +909,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-macOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-macOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -921,7 +931,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Cachyr.Cachyr-macOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "no.nrk.yr.cachyr-macOS";
 				PRODUCT_NAME = Cachyr;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;

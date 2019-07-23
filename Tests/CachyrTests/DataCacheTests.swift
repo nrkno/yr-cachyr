@@ -274,7 +274,7 @@ class DataCacheTests: XCTestCase {
     func testCompletionBackgroundQueue() {
         let expect = expectation(description: "Background queue completion")
         let currentThread = Thread.current
-        let cache = DataCache<String>(name: "backgroundTest")
+        let cache = DataCache<String>(name: "backgroundTest")!
         cache.setValue("asdf", forKey: "foo")
         cache.value(forKey: "foo") { (_) in
             XCTAssertNotEqual(currentThread, Thread.current)
@@ -287,7 +287,7 @@ class DataCacheTests: XCTestCase {
 
     func testCompletionMainQueue() {
         let expect = expectation(description: "Main queue completion")
-        let cache = DataCache<String>(name: "mainQueueTest", completionQueue: .main)
+        let cache = DataCache<String>(name: "mainQueueTest", completionQueue: .main)!
         cache.setValue("asdf", forKey: "foo")
         cache.value(forKey: "foo") { (_) in
             XCTAssertEqual(Thread.main, Thread.current)
@@ -299,7 +299,7 @@ class DataCacheTests: XCTestCase {
     }
 
     func testModelTransform() {
-        let cache = DataCache<Book>()
+        let cache = DataCache<Book>()!
         let weaveworld = Book(title: "Weaveworld")
         let key = "book"
         cache.setValue(weaveworld, forKey: key, access: [.disk])

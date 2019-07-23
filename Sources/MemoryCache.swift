@@ -43,7 +43,7 @@ open class MemoryCache<ValueType> {
      NSCache does not support enumeration of the keys and objects it contains. The access queue
      is used to synchronize access to a set with keys.
      */
-    private let accessQueue = DispatchQueue(label: "no.nrk.yr.cache.memory")
+    private let accessQueue = DispatchQueue(label: "no.nrk.yr.cache.memory", attributes: .concurrent)
 
     private let cache = NSCache<NSString, ValueWrapper<ValueType>>()
 
@@ -69,14 +69,14 @@ open class MemoryCache<ValueType> {
 
     public func value(forKey key: String) -> ValueType? {
         return accessQueue.sync {
-            removeExpiredAfterInterval()
-
             guard let wrapper = wrapper(for: key) else {
                 return nil
             }
 
             if hasExpired(wrapper: wrapper) {
-                removeValueNoSync(for: key)
+                accessQueue.async(flags: .barrier) {
+                    self.removeValueNoSync(for: key)
+                }
                 return nil
             }
 
@@ -85,27 +85,27 @@ open class MemoryCache<ValueType> {
     }
 
     public func setValue(_ value: ValueType, forKey key: String, expires: Date? = nil) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             removeExpiredAfterInterval()
             addValue(value, for: key, expires: expires)
         }
     }
 
     public func removeValue(forKey key: String) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             removeValueNoSync(for: key)
         }
     }
 
     public func removeAll() {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             cache.removeAllObjects()
             keys.removeAll()
         }
     }
 
     public func removeExpired() {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             removeExpiredItems()
         }
     }
@@ -120,7 +120,7 @@ open class MemoryCache<ValueType> {
     }
 
     public func setExpirationDate(_ date: Date?, forKey key: String) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             if let wrapper = wrapper(for: key) {
                 wrapper.expiration = date
             }
@@ -128,7 +128,7 @@ open class MemoryCache<ValueType> {
     }
 
     public func removeItems(olderThan date: Date) {
-        accessQueue.sync {
+        accessQueue.sync(flags: .barrier) {
             for key in keys {
                 guard let wrapper = wrapper(for: key) else {
                     keys.remove(key)
