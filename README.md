@@ -23,6 +23,16 @@ Then:
 $ pod install
 ```
 
+### Swift Package Manager
+
+The [Swift Package Manager](https://swift.org/package-manager/) is a tool for managing the distribution of Swift code. It’s integrated with the Swift build system to automate the process of downloading, compiling, and linking dependencies.
+
+To integrate `Cachyr` into your Xcode project using Xcode 11, specify it in `File > Swift Packages > Add`:
+
+```
+https://github.com/nrkno/yr-cachyr
+```
+
 ### Manual
 
 Clone the repo somewhere suitable, like inside your project repo so Cachyr can be added as a subrepo, then drag `Cachyr.xcodeproj` into your project.
